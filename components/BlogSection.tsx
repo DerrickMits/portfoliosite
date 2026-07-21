@@ -132,6 +132,35 @@ export default function BlogSection({ posts }: BlogSectionProps) {
             </motion.article>
           ))}
         </div>
+
+        {/* Cross-link to The Ledger long-form publication */}
+        <motion.a
+          href="https://ledger-article-site.vercel.app"
+          target="_blank"
+          rel="noopener noreferrer"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="group mt-12 mx-auto block max-w-xl text-center rounded-2xl border border-warm-200 dark:border-warm-800 bg-white dark:bg-warm-900 p-8 hover:border-warm-300 dark:hover:border-warm-700 hover:shadow-lg transition-all duration-300"
+        >
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <span className="h-px w-8 bg-warm-300 dark:bg-warm-700 transition-all duration-300 group-hover:w-12" />
+            <span className="text-xs uppercase tracking-[0.2em] font-semibold text-warm-500 dark:text-warm-400">
+              The Ledger
+            </span>
+            <span className="h-px w-8 bg-warm-300 dark:bg-warm-700 transition-all duration-300 group-hover:w-12" />
+          </div>
+          <h3 className="text-xl md:text-2xl font-display font-bold text-warm-900 dark:text-warm-100 mb-2">
+            Read long-form articles
+          </h3>
+          <p className="text-sm text-warm-600 dark:text-warm-300 leading-relaxed mb-4">
+            A quiet space for deeper reflections on operations, CRM strategy, and the craft of building reliable systems.
+          </p>
+          <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-warm-700 dark:text-warm-300 group-hover:text-warm-900 dark:group-hover:text-warm-100 transition-colors">
+            Continue reading <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
+          </span>
+        </motion.a>
       </div>
 
       {/* Blog Post Modal */}
