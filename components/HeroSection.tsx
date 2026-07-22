@@ -106,8 +106,6 @@ export default function HeroSection() {
               <div className="flex items-center gap-1.5 ml-2">
                 <a
                   href="https://linkedin.com/in/derrickodiwuor"
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="w-10 h-10 rounded-xl bg-warm-100 dark:bg-warm-800 flex items-center justify-center hover:bg-warm-200 dark:hover:bg-warm-700 transition-colors"
                   aria-label="LinkedIn"
                 >

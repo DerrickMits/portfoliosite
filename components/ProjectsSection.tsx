@@ -130,8 +130,6 @@ export default function ProjectsSection() {
                 {project.link && (
                   <a
                     href={project.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
                     className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-warm-900 dark:text-warm-100 hover:text-warm-700 dark:hover:text-warm-300 transition-colors min-h-[44px]"
                   >
                     {project.ctaText}

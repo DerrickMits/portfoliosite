@@ -136,8 +136,6 @@ export default function BlogSection({ posts }: BlogSectionProps) {
         {/* Cross-link to The Ledger long-form publication */}
         <motion.a
           href="https://ledger-article-site.vercel.app"
-          target="_blank"
-          rel="noopener noreferrer"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
