@@ -12,6 +12,10 @@ export interface Project {
   description: string;
   tools: string[];
   outcome: string;
+  /** Optional external link for case study cards (e.g. The Ledger articles) */
+  link?: string;
+  /** Optional CTA button text when `link` is present */
+  ctaText?: string;
 }
 
 export interface SkillCategory {
