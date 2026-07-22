@@ -1,7 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { ArrowUpRight } from "lucide-react";
 import { Project } from "@/lib/types";
+
+const LEDGER_URL =
+  "https://ledger-article-site.vercel.app/articles/high-performance-gohighlevel-workflows";
 
 const projects: Project[] = [
   {
@@ -35,6 +39,8 @@ const projects: Project[] = [
     tools: ["GoHighLevel", "CRM Automation", "Workflow Engineering", "Lead Routing"],
     outcome:
       "Eliminated manual pipeline handoffs and achieved native lead-state syncing across nurture, booking, and hot-lead routing stages.",
+    link: LEDGER_URL,
+    ctaText: "Read Workflow Breakdown",
   },
   {
     title: "Automated Appointment & No-Show Recovery Pipeline",
@@ -48,6 +54,8 @@ const projects: Project[] = [
     ],
     outcome:
       "Recovered missed meetings via timed re-engagement sequences and synced push alerts to operators within seconds of a no-show event.",
+    link: `${LEDGER_URL}#workflow-3-appointment-booking-confirmation`,
+    ctaText: "View Technical Guide",
   },
 ];
 
@@ -117,6 +125,20 @@ export default function ProjectsSection() {
                 <p className="text-sm font-semibold text-warm-800 dark:text-warm-200 leading-relaxed">
                   {project.outcome}
                 </p>
+
+                {/* CTA Button — only for linked cards (04, 05) */}
+                {project.link && (
+                  <a
+                    href={project.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-warm-900 dark:text-warm-100 hover:text-warm-700 dark:hover:text-warm-300 transition-colors min-h-[44px]"
+                  >
+                    {project.ctaText}
+                    <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                    <span className="sr-only">opens in new tab</span>
+                  </a>
+                )}
               </div>
             </motion.div>
           ))}
