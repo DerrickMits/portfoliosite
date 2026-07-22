@@ -18,7 +18,7 @@ export default function Footer() {
           Derrick Odiwuor
         </p>
         <p className="text-warm-600 dark:text-warm-300 text-sm mb-1">
-          Executive Operations Coordinator &bull; Nairobi, Kenya
+          Nairobi, Kenya
         </p>
         <p className="text-warm-500 dark:text-warm-600 text-xs">
           &copy; {currentYear} Derrick Odiwuor. All rights reserved.
