@@ -12,6 +12,7 @@ const navLinks = [
   { href: "#skills", label: "Skills" },
   { href: "#blog", label: "Blog" },
   { href: "#contact", label: "Contact" },
+  { href: "https://resources-virid-nine.vercel.app/resources", label: "Resources" },
 ];
 
 export default function Navbar() {
