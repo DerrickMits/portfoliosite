@@ -13,6 +13,7 @@ const navLinks = [
   { href: "#blog", label: "Blog" },
   { href: "#contact", label: "Contact" },
   { href: "https://resources-virid-nine.vercel.app/resources", label: "Resources" },
+  { href: "https://ledger-article-site.vercel.app", label: "Articles" },
 ];
 
 export default function Navbar() {
