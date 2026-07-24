@@ -6,6 +6,8 @@ import { Project } from "@/lib/types";
 
 const LEDGER_URL =
   "https://ledger-article-site.vercel.app/articles/high-performance-gohighlevel-workflows";
+const ZAPIER_GUIDE_URL =
+  "https://ledger-article-site.vercel.app/articles/zapier-workflow-automation-guide";
 
 const projects: Project[] = [
   {
@@ -15,6 +17,8 @@ const projects: Project[] = [
     tools: ["Asana", "Google Workspace", "Process Engineering"],
     outcome:
       "Cut daily operational interruptions by 50% and saved 35% focus time.",
+    link: ZAPIER_GUIDE_URL,
+    ctaText: "Read Workflow Breakdown",
   },
   {
     title: "Automated Collections & Debt Reduction Workflow",
