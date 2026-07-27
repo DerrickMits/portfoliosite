@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
-import { Sun, Moon, Menu, X } from "lucide-react";
+import { Sun, Moon, Menu, X, Sparkles } from "lucide-react";
 
 const navLinks = [
   { href: "#about", label: "About" },
@@ -14,6 +14,7 @@ const navLinks = [
   { href: "#contact", label: "Contact" },
   { href: "https://resources-virid-nine.vercel.app/resources", label: "Resources" },
   { href: "https://ledger-article-site.vercel.app", label: "Articles" },
+  { href: process.env.NEXT_PUBLIC_AI_ASSISTANT_URL || "https://ai-assistant-theta-nine.vercel.app", label: "AI Assistant", external: true },
 ];
 
 export default function Navbar() {
@@ -57,9 +58,16 @@ export default function Navbar() {
               <a
                 key={link.href}
                 href={link.href}
-                className="px-3 py-2 rounded-lg text-sm font-medium text-warm-600 dark:text-warm-400 hover:text-warm-900 dark:hover:text-warm-100 hover:bg-warm-100 dark:hover:bg-warm-800 transition-colors"
+                {...(("external" in link) && link.external
+                  ? { target: "_blank", rel: "noopener noreferrer" }
+                  : {})}
+                {...(("external" in link) && link.external
+                  ? { className: "px-3 py-2 rounded-lg text-sm font-bold bg-gradient-to-r from-amber-300/30 to-violet-300/30 text-warm-900 dark:text-warm-100 hover:from-amber-300/50 hover:to-violet-300/50 transition-colors" }
+                  : { className: "px-3 py-2 rounded-lg text-sm font-medium text-warm-600 dark:text-warm-400 hover:text-warm-900 dark:hover:text-warm-100 hover:bg-warm-100 dark:hover:bg-warm-800 transition-colors" })}
               >
-                {link.label}
+                {("external" in link) && link.external
+                  ? <span className="inline-flex items-center gap-1.5">{link.label}<Sparkles className="w-3.5 h-3.5" /></span>
+                  : link.label}
               </a>
             ))}
           </div>
@@ -120,16 +128,25 @@ export default function Navbar() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex flex-col gap-1">
-                {navLinks.map((link) => (
-                  <a
-                    key={link.href}
-                    href={link.href}
-                    onClick={closeMobile}
-                    className="px-4 py-3 rounded-xl text-lg font-medium text-warm-700 dark:text-warm-300 hover:bg-warm-100 dark:hover:bg-warm-800 hover:text-warm-900 dark:hover:text-warm-100 transition-colors"
-                  >
-                    {link.label}
-                  </a>
-                ))}
+                {navLinks.map((link) => {
+                  const isExt = ("external" in link) && link.external;
+                  return (
+                    <a
+                      key={link.href}
+                      href={link.href}
+                      onClick={closeMobile}
+                      {...(isExt ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                      className={
+                        isExt
+                          ? "inline-flex items-center gap-2 px-4 py-3 rounded-xl text-lg font-bold bg-gradient-to-r from-amber-300/30 to-violet-300/30 text-warm-900 dark:text-warm-100"
+                          : "px-4 py-3 rounded-xl text-lg font-medium text-warm-700 dark:text-warm-300 hover:bg-warm-100 dark:hover:bg-warm-800 hover:text-warm-900 dark:hover:text-warm-100 transition-colors"
+                      }
+                    >
+                      {link.label}
+                      {isExt && <Sparkles className="w-4 h-4" />}
+                    </a>
+                  );
+                })}
               </div>
             </motion.div>
           </motion.div>
