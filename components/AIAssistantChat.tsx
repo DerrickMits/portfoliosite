@@ -176,7 +176,7 @@ export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
           className="border-t border-warm-200 dark:border-warm-800 p-3"
           onSubmit={(e) => { e.preventDefault(); send(); }}
         >
-          <div className="flex items-end gap-2 rounded-2xl bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 px-3 py-2 focus-within:border-warm-300 dark:focus-within:border-warm-500 transition-colors">
+          <div className="flex items-end gap-1.5 rounded-2xl bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 pl-4 pr-2 py-1.5 focus-within:border-warm-300 dark:focus-within:border-warm-500 transition-colors">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -188,7 +188,7 @@ export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
               }}
               rows={1}
               placeholder="Ask Derrick's AI Assistant..."
-              className="flex-1 resize-none bg-transparent outline-none text-sm text-warm-900 dark:text-warm-100 placeholder:text-warm-400 py-1 max-h-32"
+              className="flex-1 resize-none bg-transparent outline-none text-sm text-warm-900 dark:text-warm-100 placeholder:text-warm-400 py-1.5 px-0 max-h-32"
             />
             <button
               type="submit"
