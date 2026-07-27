@@ -1,6 +1,7 @@
 import { getAllPosts } from "@/lib/posts";
 import HeroSection from "@/components/HeroSection";
 import ExperienceSection from "@/components/ExperienceSection";
+import RecommendationsSection from "@/components/RecommendationsSection";
 import ProjectsSection from "@/components/ProjectsSection";
 import SkillsSection from "@/components/SkillsSection";
 import BlogSection from "@/components/BlogSection";
@@ -14,6 +15,7 @@ export default function Home() {
     <>
       <HeroSection />
       <ExperienceSection />
+      <RecommendationsSection />
       <ProjectsSection />
       <SkillsSection />
       <BlogSection posts={posts} />
