@@ -12,7 +12,7 @@ import remarkGfm from "remark-gfm";
  */
 const AI_ASSISTANT_URL =
   process.env.NEXT_PUBLIC_AI_ASSISTANT_URL ||
-  "https://ai-assistant-derrickmits-projects.vercel.app";
+  "https://ai-assistant-theta-nine.vercel.app";
 
 interface Msg {
   role: "user" | "assistant";
