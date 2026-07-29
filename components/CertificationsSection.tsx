@@ -4,26 +4,56 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { ExternalLink } from "lucide-react";
 
-// To add a new badge in the future, append one entry to this array.
-// `image` paths are root-relative to /public. URL-encode spaces as %20.
-const badges = [
+// Badge types: drop in a new entry to add a 4th, 5th, etc.
+//   - `image`: local PNG under /public/badges (URL-encode spaces as %20)
+//   - `embed`: raw HTML (for credential widgets like HubSpot Academy that
+//     load their own badge artwork from a remote URL inside the snippet)
+type BadgeImage = {
+  kind: "image";
+  title: string;
+  issuer: string;
+  image: string;
+  href: string;
+};
+
+type BadgeEmbed = {
+  kind: "embed";
+  title: string;
+  issuer: string;
+  embed: string;
+  href: string;
+};
+
+type Badge = BadgeImage | BadgeEmbed;
+
+const badges: Badge[] = [
   {
+    kind: "image",
     title: "Salesforce Certified Platform Administrator",
     issuer: "Salesforce",
     image: "/badges/Salesforce%20Certified%20Platform%20Administrator.png",
     href: "https://www.salesforce.com/trailblazer/npzwbmxctzpotksmw2",
   },
   {
+    kind: "image",
     title: "GoHighLevel Certified Admin",
     issuer: "GoHighLevel",
     image: "/badges/GoHighLevel%20Certified%20Admin.png",
     href: "https://directory.gohighlevel.com/kenya/nairobi/certified-admins/derrick-odiwuor?from=badge",
   },
   {
+    kind: "image",
     title: "Salesforce Certified Platform Foundations",
     issuer: "Salesforce",
     image: "/badges/Salesforce%20Certified%20Platform%20Foundations.png",
     href: "https://www.salesforce.com/trailblazer/npzwbmxctzpotksmw2",
+  },
+  {
+    kind: "embed",
+    title: "HubSpot Academy Inbound Certified",
+    issuer: "HubSpot Academy",
+    href: "https://app-eu1.hubspot.com/academy/achievements/s8wx1ywy/en/1/derrick-odiwuor/inbound-certified",
+    embed: `<div class='academy-badge'><a href='https://app-eu1.hubspot.com/academy/achievements/s8wx1ywy/en/1/derrick-odiwuor/inbound-certified' title='Inbound Certified'><img src='https://hubspot-credentials-na1.s3.amazonaws.com/prod/badges/user/0a7bffa10cfb44b4a542818fb7edd4e8.png' alt='HubSpot Academy Inbound Certified' /></a></div>`,
   },
 ];
 
@@ -85,15 +115,23 @@ export default function CertificationsSection() {
               rel="noopener noreferrer"
               className="group bg-white dark:bg-warm-900 rounded-2xl border border-warm-200 dark:border-warm-800 p-6 md:p-8 flex flex-col items-center hover:shadow-xl hover:border-warm-300 dark:hover:border-warm-700 transition-all duration-300"
             >
+              {/* Badge artwork: local <Image> OR remote HTML embed (HubSpot). */}
               <div className="w-40 h-40 md:w-44 md:h-44 flex items-center justify-center">
-                <Image
-                  src={badge.image}
-                  alt={badge.title}
-                  width={176}
-                  height={176}
-                  sizes="176px"
-                  className="w-full h-full object-contain"
-                />
+                {badge.kind === "image" ? (
+                  <Image
+                    src={badge.image}
+                    alt={badge.title}
+                    width={176}
+                    height={176}
+                    sizes="176px"
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <div
+                    className="w-full h-full flex items-center justify-center [&_img]:max-h-full [&_img]:max-w-full [&_img]:h-auto [&_img]:w-auto [&_img]:object-contain [&_a]:inline-flex"
+                    dangerouslySetInnerHTML={{ __html: badge.embed }}
+                  />
+                )}
               </div>
 
               <p className="mt-5 text-xs uppercase tracking-[0.15em] font-semibold text-warm-500 dark:text-warm-400">
