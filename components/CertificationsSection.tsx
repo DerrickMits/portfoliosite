@@ -55,6 +55,27 @@ const badges: Badge[] = [
     href: "https://app-eu1.hubspot.com/academy/achievements/s8wx1ywy/en/1/derrick-odiwuor/inbound-certified",
     embed: `<div class='academy-badge'><a href='https://app-eu1.hubspot.com/academy/achievements/s8wx1ywy/en/1/derrick-odiwuor/inbound-certified' title='Inbound Certified'><img src='https://hubspot-credentials-na1.s3.amazonaws.com/prod/badges/user/0a7bffa10cfb44b4a542818fb7edd4e8.png' alt='HubSpot Academy Inbound Certified' /></a></div>`,
   },
+  {
+    kind: "embed",
+    title: "Account-Based Marketing Bootcamp",
+    issuer: "HubSpot Academy",
+    href: "https://app-eu1.hubspot.com/academy/achievements/p3pkbxqj/en/1/derrick-odiwuor/certificate-of-completion",
+    embed: `<div class='academy-badge'><a href='https://app-eu1.hubspot.com/academy/achievements/p3pkbxqj/en/1/derrick-odiwuor/certificate-of-completion' title='Account-Based Marketing Bootcamp'><img src='https://hubspot-credentials-na1.s3.amazonaws.com/prod/badges/user/f49c47c78d4a448cb7eb08314f701335.png' alt='Account-Based Marketing Bootcamp' /></a></div>`,
+  },
+  {
+    kind: "embed",
+    title: "Content Marketing Certified",
+    issuer: "HubSpot Academy",
+    href: "https://app-eu1.hubspot.com/academy/achievements/htzv6v3b/en/1/derrick-odiwuor/content-marketing-certified",
+    embed: `<div class='academy-badge'><a href='https://app-eu1.hubspot.com/academy/achievements/htzv6v3b/en/1/derrick-odiwuor/content-marketing-certified' title='Content Marketing Certified'><img src='https://hubspot-credentials-na1.s3.amazonaws.com/prod/badges/user/7112ab938e7946acb81f373ea0992ee5.png' alt='Content Marketing Certified' /></a></div>`,
+  },
+  {
+    kind: "embed",
+    title: "Email Marketing Certified",
+    issuer: "HubSpot Academy",
+    href: "https://app-eu1.hubspot.com/academy/achievements/td0v79mn/en/1/derrick-odiwuor/email-marketing-certified",
+    embed: `<div class='academy-badge'><a href='https://app-eu1.hubspot.com/academy/achievements/td0v79mn/en/1/derrick-odiwuor/email-marketing-certified' title='Email Marketing Certified'><img src='https://hubspot-credentials-na1.s3.amazonaws.com/prod/badges/user/7cb5c9ad34d8450dbb2f4b8f0982ccf4.png' alt='Email Marketing Certified' /></a></div>`,
+  },
 ];
 
 const sectionEyebrow = "Verified Credentials";
