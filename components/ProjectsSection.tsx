@@ -8,6 +8,8 @@ const LEDGER_URL =
   "https://ledger-article-site.vercel.app/articles/high-performance-gohighlevel-workflows";
 const ZAPIER_GUIDE_URL =
   "https://ledger-article-site.vercel.app/articles/zapier-workflow-automation-guide";
+const CAMPAIGN_ROI_URL =
+  "https://ledger-article-site.vercel.app/articles/optimizing-marketing-spend-data-modeling";
 
 const projects: Project[] = [
   {
@@ -35,6 +37,8 @@ const projects: Project[] = [
     tools: ["Python", "Tableau", "Jira", "Power BI"],
     outcome:
       "Cut reporting duration by 30% and increased campaign ROI by 12%.",
+    link: CAMPAIGN_ROI_URL,
+    ctaText: "Read the Project Breakdown",
   },
   {
     title: "GoHighLevel Multi-Stage Sales Automation Engine",
