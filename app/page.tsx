@@ -1,5 +1,6 @@
 import { getAllPosts } from "@/lib/posts";
 import HeroSection from "@/components/HeroSection";
+import CertificationsSection from "@/components/CertificationsSection";
 import ExperienceSection from "@/components/ExperienceSection";
 import RecommendationsSection from "@/components/RecommendationsSection";
 import ProjectsSection from "@/components/ProjectsSection";
@@ -14,6 +15,7 @@ export default function Home() {
   return (
     <>
       <HeroSection />
+      <CertificationsSection />
       <ExperienceSection />
       <RecommendationsSection />
       <ProjectsSection />
