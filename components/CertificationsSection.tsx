@@ -76,6 +76,13 @@ const badges: Badge[] = [
     href: "https://app-eu1.hubspot.com/academy/achievements/td0v79mn/en/1/derrick-odiwuor/email-marketing-certified",
     embed: `<div class='academy-badge'><a href='https://app-eu1.hubspot.com/academy/achievements/td0v79mn/en/1/derrick-odiwuor/email-marketing-certified' title='Email Marketing Certified'><img src='https://hubspot-credentials-na1.s3.amazonaws.com/prod/badges/user/7cb5c9ad34d8450dbb2f4b8f0982ccf4.png' alt='Email Marketing Certified' /></a></div>`,
   },
+  {
+    kind: "image",
+    title: "Google Agile Project Management",
+    issuer: "Google",
+    image: "/badges/Google%20Agile%20Project%20Management.png",
+    href: "https://www.coursera.org/account/accomplishments/verify/TBZL78UQ5QU7",
+  },
 ];
 
 const sectionEyebrow = "Verified Credentials";
