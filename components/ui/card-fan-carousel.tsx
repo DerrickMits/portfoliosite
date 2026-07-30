@@ -30,30 +30,34 @@ const FAN_POSITIONS = [
 /**
  * Card width (in rem) per viewport for the small-N fan layout. Mirrors the
  * Tailwind classes on the card div in JSX:
- *   <640     -> w-[9rem]
- *   640-767  -> w-[11rem]
+ *   <640     -> w-[7rem]
+ *   640-767  -> w-[10rem]
  *   768-1023 -> w-[14rem]
  *   >=1024   -> w-[16rem]
- * Used to scale the small-N fan x-offset proportionally so the visible gap
- * between cards stays consistent across breakpoints.
+ *
+ * Mobile uses 7rem (not 9rem) so 3 touching cards fit within a 360px
+ * viewport (3 * 7rem = 21rem = 336px, fits inside the 328px content area
+ * with a few px of breathing room).
  */
 function getCardWidthRem(width: number): number {
-  if (width < 640) return 9;
-  if (width < 768) return 11;
+  if (width < 640) return 7;
+  if (width < 768) return 10;
   if (width < 1024) return 14;
   return 16;
 }
 
 /**
  * For small-N fans (totalCards < MAX_VISIBLE), returns the multiplier to
- * apply to x so the gap between cards stays roughly proportional to the
- * card width at the current viewport. Returns 1.0 for the original
- * 7+ behavior (handled in the GSAP effect hook via the original
- * getResponsiveMultiplier).
+ * apply to x so adjacent cards touch (0px gap) at every viewport. The
+ * reference value is x=16 at cardW=16 (desktop): side card center sits at
+ * cardW from center card center, so the cards' edges just kiss.
+ *
+ * Mobile: with 9rem cards touching, the fan span is 18rem (288px). A 360px
+ * viewport with px-4 (32px padding) has 328px content width, so the fan is
+ * well inside the viewport on phones too.
  */
 function getSmallNXScale(width: number, totalCards: number): number {
-  const refCardWidth = 16; // rem - matches the lg breakpoint
-  return getCardWidthRem(width) / refCardWidth;
+  return getCardWidthRem(width) / 16; // touching exactly at every viewport
 }
 
 function getResponsiveMultiplier(width: number) {
@@ -85,18 +89,20 @@ function getSlotConfig(totalCards: number, slot: number) {
   // For small-N layouts (< MAX_VISIBLE) we set absolute rem offsets that
   // scale cleanly with the card width at every viewport. The GSAP effect
   // hook multiplies these by getSmallNXScale(width) which mirrors the
-  // card width ratio, so the visible gap between cards stays consistent.
+  // card width ratio.
   //
-  // Reference card width is 16rem (lg breakpoint). At that width:
-  //   x  = 17.4rem  (center 0 + 8rem half-width + 1.4rem gap + 8rem half-width)
-  //   y  = 3rem     (gentle fan drop)
-  //   rot= 4.5 deg  (subtle fan tilt)
-  const xRem = 17.4 * absDistance;
+  // x = cardWidth means side cards sit at exactly cardWidth/2 + cardWidth/2
+  // from center, so adjacent cards just barely touch with no visible gap
+  // (the 16rem reference value matches the lg breakpoint card size).
+  //   x  = 16rem   (cards touch: side center at cardW from center center)
+  //   y  = 2rem    (gentle fan drop)
+  //   rot= 4 deg   (subtle fan tilt)
+  const xRem = 16 * absDistance;
   return {
-    rot: distance * 4.5,
+    rot: distance * 4,
     scale: 1.0 - 0.10 * absDistance,
     x: distance * xRem,
-    y: absDistance * absDistance * 3,
+    y: absDistance * absDistance * 2,
     zIndex: 10 - Math.abs(slot - center),
   };
 }
@@ -306,7 +312,7 @@ export default function SocialCards({ cards }: SocialCardsProps) {
         <div ref={containerRef} className="fan-layout flex relative justify-center items-center w-full max-w-[80rem]" style={{ ["--card-w" as string]: "14rem", ["--card-h" as string]: "20rem" }}>
           {cards.map((card, index) => {
             const image = (
-              <div className="relative w-[9rem] h-[13rem] sm:w-[11rem] sm:h-[16rem] md:w-[14rem] md:h-[20rem] lg:w-[16rem] lg:h-[22rem] overflow-hidden rounded-2xl shadow-xl border border-warm-200/60 dark:border-warm-800/60 mb-12">
+              <div className="relative w-[7rem] h-[10rem] sm:w-[10rem] sm:h-[14rem] md:w-[14rem] md:h-[20rem] lg:w-[16rem] lg:h-[22rem] overflow-hidden rounded-2xl shadow-xl border border-warm-200/60 dark:border-warm-800/60 mb-12">
                 <img
                   src={card.imgUrl}
                   loading="lazy"
