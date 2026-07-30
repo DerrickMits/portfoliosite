@@ -1,29 +1,23 @@
 "use client";
 
 import { motion } from "framer-motion";
-import SocialCards, { CardItem } from "@/components/ui/card-fan-carousel";
+import { ImageSwiper } from "@/components/ui/image-swiper";
 
 const sectionEyebrow = "Off the Clock";
 const sectionTitle = "Beyond Work";
 const sectionIntro =
-  "A few moments outside the dashboard. Paintballing with the crew, team building offsites, and conversations that started as networking and became something more.";
+  "A few moments outside the dashboard. Paintballing with the crew, team building offsites, and conversations that started as networking and became something more. Drag the top card to see the next.";
 
-const beyondWorkCards: CardItem[] = [
-  {
-    imgUrl: "/beyond-work/Paintballing.jpeg",
-    alt: "Paintballing with the team",
-    caption: "Paintballing",
-  },
-  {
-    imgUrl: "/beyond-work/Team%20building.jpeg",
-    alt: "Team building offsite",
-    caption: "Team Building",
-  },
-  {
-    imgUrl: "/beyond-work/Networking.jpeg",
-    alt: "Networking event",
-    caption: "Networking",
-  },
+// Comma-separated image URLs (URL-encoded spaces per existing convention).
+// Captions are passed in parallel to render as overlays on each card.
+const swiperImages =
+  "/beyond-work/Paintballing.jpeg,/beyond-work/Team%20building.jpeg,/beyond-work/Networking.jpeg";
+const swiperCaptions = ["Paintballing", "Team Building", "Networking"];
+
+const swiperAlts = [
+  "Paintballing with the team",
+  "Team building offsite",
+  "Networking event conversation",
 ];
 
 export default function BeyondWorkSection() {
@@ -51,7 +45,15 @@ export default function BeyondWorkSection() {
           </p>
         </motion.div>
 
-        <SocialCards cards={beyondWorkCards} />
+        <div className="flex items-center justify-center w-full">
+          <ImageSwiper
+            images={swiperImages}
+            captions={swiperCaptions}
+            cardWidth={256}
+            cardHeight={352}
+            alt={swiperAlts}
+          />
+        </div>
       </div>
     </section>
   );
