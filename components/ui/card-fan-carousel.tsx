@@ -27,6 +27,35 @@ const FAN_POSITIONS = [
   { rot: 21,  scale: 0.7756, x: 30,  y: 7.3, zIndex: 1 },
 ];
 
+/**
+ * Card width (in rem) per viewport for the small-N fan layout. Mirrors the
+ * Tailwind classes on the card div in JSX:
+ *   <640     -> w-[9rem]
+ *   640-767  -> w-[11rem]
+ *   768-1023 -> w-[14rem]
+ *   >=1024   -> w-[16rem]
+ * Used to scale the small-N fan x-offset proportionally so the visible gap
+ * between cards stays consistent across breakpoints.
+ */
+function getCardWidthRem(width: number): number {
+  if (width < 640) return 9;
+  if (width < 768) return 11;
+  if (width < 1024) return 14;
+  return 16;
+}
+
+/**
+ * For small-N fans (totalCards < MAX_VISIBLE), returns the multiplier to
+ * apply to x so the gap between cards stays roughly proportional to the
+ * card width at the current viewport. Returns 1.0 for the original
+ * 7+ behavior (handled in the GSAP effect hook via the original
+ * getResponsiveMultiplier).
+ */
+function getSmallNXScale(width: number, totalCards: number): number {
+  const refCardWidth = 16; // rem - matches the lg breakpoint
+  return getCardWidthRem(width) / refCardWidth;
+}
+
 function getResponsiveMultiplier(width: number) {
   if (width < 480) return 0.28;
   if (width < 640) return 0.38;
@@ -53,18 +82,21 @@ function getSlotConfig(totalCards: number, slot: number) {
   const center = totalCards >> 1;
   const distance = totalCards > 1 ? (slot - center) / center : 0;
   const absDistance = Math.abs(distance);
-  // Scale horizontal/vertical offsets by totalCards / MAX_VISIBLE so layouts
-  // with fewer cards stay tight and on-screen. The 0.55 multiplier on x/y
-  // pulls small-N layouts in further than a plain density scale, which is
-  // needed to keep all 3 cards within a phone-width viewport. The rotation
-  // cap of 0.7 prevents small-N fans from tilting too steeply for the
-  // smaller spread. Original 7+ behavior is preserved unchanged.
-  const density = totalCards / MAX_VISIBLE;
+  // For small-N layouts (< MAX_VISIBLE) we set absolute rem offsets that
+  // scale cleanly with the card width at every viewport. The GSAP effect
+  // hook multiplies these by getSmallNXScale(width) which mirrors the
+  // card width ratio, so the visible gap between cards stays consistent.
+  //
+  // Reference card width is 16rem (lg breakpoint). At that width:
+  //   x  = 17.4rem  (center 0 + 8rem half-width + 1.4rem gap + 8rem half-width)
+  //   y  = 3rem     (gentle fan drop)
+  //   rot= 4.5 deg  (subtle fan tilt)
+  const xRem = 17.4 * absDistance;
   return {
-    rot: distance * 21 * Math.min(density * 0.7, 1),
-    scale: 1.0 - 0.2244 * absDistance * absDistance,
-    x: distance * 30 * density * 0.55,
-    y: absDistance * absDistance * 7.3 * density * 0.55,
+    rot: distance * 4.5,
+    scale: 1.0 - 0.10 * absDistance,
+    x: distance * xRem,
+    y: absDistance * absDistance * 3,
     zIndex: 10 - Math.abs(slot - center),
   };
 }
@@ -117,7 +149,9 @@ export default function SocialCards({ cards }: SocialCardsProps) {
     const previouslyVisible = prevVisible.current;
     const direction = directionRef.current;
     const isFirstMount = !hasEntered.current;
-    const multiplier = getResponsiveMultiplier(window.innerWidth);
+    const multiplier = needsPagination
+      ? getResponsiveMultiplier(window.innerWidth)
+      : getSmallNXScale(window.innerWidth, totalCards);
     const hMult = getHeightMultiplier(window.innerWidth);
     const slotCount = needsPagination ? MAX_VISIBLE : totalCards;
     const config = (slot: number) => getSlotConfig(slotCount, slot);
@@ -181,7 +215,9 @@ export default function SocialCards({ cards }: SocialCardsProps) {
     const centerSlot = visibleEntries.length >> 1;
 
     const updateHoverLayout = (hoveredSlot: number | null) => {
-      const mult = getResponsiveMultiplier(window.innerWidth);
+      const mult = needsPagination
+        ? getResponsiveMultiplier(window.innerWidth)
+        : getSmallNXScale(window.innerWidth, totalCards);
       const hM = getHeightMultiplier(window.innerWidth);
 
       visibleEntries.forEach(({ el, slot }) => {
