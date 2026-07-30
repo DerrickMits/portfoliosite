@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
-import { Sun, Moon, Menu, X, Sparkles, ChevronDown } from "lucide-react";
+import { Sun, Moon, Menu, X, Sparkles, ChevronDown, ArrowUpRight } from "lucide-react";
 
 type NavLink = {
   href: string;
@@ -24,8 +24,13 @@ const navLinks: NavLink[] = [
   { href: "#certifications", label: "Certifications" },
   { href: "#projects", label: "Projects" },
   { href: "#skills", label: "Skills" },
-  { href: "https://ai-assistant-theta-nine.vercel.app", label: "AI Assistant", external: true },
 ];
+
+// The AI Assistant is the nav's primary CTA - it lives on the far right
+// of the header (not inline with the section links) so it reads as the
+// call to action rather than another destination.
+const AI_ASSISTANT_URL = "https://ai-assistant-theta-nine.vercel.app";
+const AI_ASSISTANT_LABEL = "AI Assistant";
 
 // Blog/Articles/Resources grouped under a single "Content" dropdown
 // so the top nav stays clean and the related destinations live together.
@@ -176,8 +181,21 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Theme Toggle + Mobile Menu */}
+          {/* AI Assistant CTA + Theme Toggle + Mobile Menu */}
           <div className="flex items-center gap-3">
+            {/* Primary CTA - AI Assistant, positioned on the far right */}
+            <a
+              href={AI_ASSISTANT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`${AI_ASSISTANT_LABEL} (opens in a new tab)`}
+              className="hidden md:inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold text-warm-900 dark:text-warm-50 bg-gradient-to-r from-amber-300 to-violet-300 hover:from-amber-200 hover:to-violet-200 shadow-sm hover:shadow transition-all duration-200 hover:-translate-y-0.5"
+            >
+              <Sparkles className="w-4 h-4" />
+              {AI_ASSISTANT_LABEL}
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </a>
+
             {mounted && (
               <button
                 onClick={toggleTheme}
@@ -254,6 +272,18 @@ export default function Navbar() {
 
                 {/* Content group heading + sub-items in the mobile drawer */}
                 <div className="mt-4 pt-4 border-t border-warm-200 dark:border-warm-800">
+                  {/* AI Assistant CTA in mobile drawer */}
+                  <a
+                    href={AI_ASSISTANT_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={closeMobile}
+                    className="mb-3 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-full text-base font-semibold text-warm-900 dark:text-warm-50 bg-gradient-to-r from-amber-300 to-violet-300 shadow-sm"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    {AI_ASSISTANT_LABEL}
+                    <ArrowUpRight className="w-4 h-4" />
+                  </a>
                   <p className="px-4 mb-2 text-xs uppercase tracking-[0.2em] font-semibold text-warm-500 dark:text-warm-400">
                     Content
                   </p>
