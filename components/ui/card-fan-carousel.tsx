@@ -54,17 +54,17 @@ function getSlotConfig(totalCards: number, slot: number) {
   const distance = totalCards > 1 ? (slot - center) / center : 0;
   const absDistance = Math.abs(distance);
   // Scale horizontal/vertical offsets by totalCards / MAX_VISIBLE so layouts
-  // with fewer cards stay tight and on-screen. With the original math, 3
-  // cards spread to x = +/-30rem (~480px) which pushed the side cards
-  // outside the visible area. The density factor keeps the fan looking
-  // balanced for any small totalCards (3..6) while preserving the
-  // original 7+ behavior.
+  // with fewer cards stay tight and on-screen. The 0.55 multiplier on x/y
+  // pulls small-N layouts in further than a plain density scale, which is
+  // needed to keep all 3 cards within a phone-width viewport. The rotation
+  // cap of 0.7 prevents small-N fans from tilting too steeply for the
+  // smaller spread. Original 7+ behavior is preserved unchanged.
   const density = totalCards / MAX_VISIBLE;
   return {
-    rot: distance * 21 * Math.min(density * 1.4, 1),
+    rot: distance * 21 * Math.min(density * 0.7, 1),
     scale: 1.0 - 0.2244 * absDistance * absDistance,
-    x: distance * 30 * density,
-    y: absDistance * absDistance * 7.3 * density,
+    x: distance * 30 * density * 0.55,
+    y: absDistance * absDistance * 7.3 * density * 0.55,
     zIndex: 10 - Math.abs(slot - center),
   };
 }
@@ -270,7 +270,7 @@ export default function SocialCards({ cards }: SocialCardsProps) {
         <div ref={containerRef} className="fan-layout flex relative justify-center items-center w-full max-w-[80rem]" style={{ ["--card-w" as string]: "14rem", ["--card-h" as string]: "20rem" }}>
           {cards.map((card, index) => {
             const image = (
-              <div className="relative w-[14rem] h-[20rem] md:w-[16rem] md:h-[22rem] overflow-hidden rounded-2xl shadow-xl border border-warm-200/60 dark:border-warm-800/60 mb-12">
+              <div className="relative w-[9rem] h-[13rem] sm:w-[11rem] sm:h-[16rem] md:w-[14rem] md:h-[20rem] lg:w-[16rem] lg:h-[22rem] overflow-hidden rounded-2xl shadow-xl border border-warm-200/60 dark:border-warm-800/60 mb-12">
                 <img
                   src={card.imgUrl}
                   loading="lazy"
