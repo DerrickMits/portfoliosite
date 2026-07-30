@@ -1,21 +1,53 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
-import { Sun, Moon, Menu, X, Sparkles } from "lucide-react";
+import { Sun, Moon, Menu, X, Sparkles, ChevronDown } from "lucide-react";
 
-const navLinks = [
+type NavLink = {
+  href: string;
+  label: string;
+  external?: boolean;
+};
+
+type ContentItem = {
+  href: string;
+  label: string;
+  description: string;
+  external?: boolean;
+};
+
+const navLinks: NavLink[] = [
   { href: "#about", label: "About" },
   { href: "#experience", label: "Experience" },
   { href: "#certifications", label: "Certifications" },
   { href: "#projects", label: "Projects" },
   { href: "#skills", label: "Skills" },
-  { href: "#blog", label: "Blog" },
-  { href: "#contact", label: "Contact" },
-  { href: "https://resources-virid-nine.vercel.app/resources", label: "Resources" },
-  { href: "https://ledger-article-site.vercel.app", label: "Articles" },
-  { href: process.env.NEXT_PUBLIC_AI_ASSISTANT_URL || "https://ai-assistant-theta-nine.vercel.app", label: "AI Assistant", external: true },
+  { href: "https://ai-assistant-theta-nine.vercel.app", label: "AI Assistant", external: true },
+];
+
+// Blog/Articles/Resources grouped under a single "Content" dropdown
+// so the top nav stays clean and the related destinations live together.
+const contentItems: ContentItem[] = [
+  {
+    href: "#blog",
+    label: "Blog",
+    description: "Long-form writing on the portfolio site itself",
+    external: false,
+  },
+  {
+    href: "https://ledger-article-site.vercel.app",
+    label: "Articles",
+    description: "External publication - The Ledger",
+    external: true,
+  },
+  {
+    href: "https://resources-virid-nine.vercel.app/resources",
+    label: "Resources",
+    description: "Downloadable blueprints and playbooks",
+    external: true,
+  },
 ];
 
 export default function Navbar() {
@@ -23,6 +55,8 @@ export default function Navbar() {
   const [mounted, setMounted] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [contentOpen, setContentOpen] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -31,8 +65,25 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
+  useEffect(() => {
+    if (!contentOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (contentRef.current && !contentRef.current.contains(e.target as Node)) {
+        setContentOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setContentOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [contentOpen]);
 
+  const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
   const closeMobile = () => setMobileOpen(false);
 
   return (
@@ -71,6 +122,58 @@ export default function Navbar() {
                   : link.label}
               </a>
             ))}
+
+            {/* Content dropdown */}
+            <div ref={contentRef} className="relative">
+              <button
+                type="button"
+                aria-haspopup="menu"
+                aria-expanded={contentOpen}
+                onClick={() => setContentOpen((v) => !v)}
+                className={`inline-flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  contentOpen
+                    ? "bg-warm-100 dark:bg-warm-800 text-warm-900 dark:text-warm-100"
+                    : "text-warm-600 dark:text-warm-400 hover:text-warm-900 dark:hover:text-warm-100 hover:bg-warm-100 dark:hover:bg-warm-800"
+                }`}
+              >
+                Content
+                <ChevronDown
+                  className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                    contentOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+              <AnimatePresence>
+                {contentOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.15, ease: "easeOut" }}
+                    role="menu"
+                    className="absolute right-0 mt-2 w-72 rounded-xl bg-cream dark:bg-warm-900 border border-warm-200 dark:border-warm-800 shadow-lg p-2 z-50"
+                  >
+                    {contentItems.map((item) => (
+                      <a
+                        key={item.href}
+                        href={item.href}
+                        role="menuitem"
+                        {...(item.external
+                          ? { target: "_blank", rel: "noopener noreferrer" }
+                          : {})}
+                        onClick={() => setContentOpen(false)}
+                        className="flex flex-col gap-0.5 px-3 py-2.5 rounded-lg text-warm-700 dark:text-warm-300 hover:bg-warm-100 dark:hover:bg-warm-800 hover:text-warm-900 dark:hover:text-warm-100 transition-colors"
+                      >
+                        <span className="text-sm font-semibold">{item.label}</span>
+                        <span className="text-xs text-warm-500 dark:text-warm-400 font-normal">
+                          {item.description}
+                        </span>
+                      </a>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
 
           {/* Theme Toggle + Mobile Menu */}
@@ -148,6 +251,28 @@ export default function Navbar() {
                     </a>
                   );
                 })}
+
+                {/* Content group heading + sub-items in the mobile drawer */}
+                <div className="mt-4 pt-4 border-t border-warm-200 dark:border-warm-800">
+                  <p className="px-4 mb-2 text-xs uppercase tracking-[0.2em] font-semibold text-warm-500 dark:text-warm-400">
+                    Content
+                  </p>
+                  <div className="flex flex-col gap-1">
+                    {contentItems.map((item) => (
+                      <a
+                        key={item.href}
+                        href={item.href}
+                        onClick={closeMobile}
+                        {...(item.external
+                          ? { target: "_blank", rel: "noopener noreferrer" }
+                          : {})}
+                        className="px-4 py-3 rounded-xl text-base font-medium text-warm-600 dark:text-warm-400 hover:bg-warm-100 dark:hover:bg-warm-800 hover:text-warm-900 dark:hover:text-warm-100 transition-colors"
+                      >
+                        {item.label}
+                      </a>
+                    ))}
+                  </div>
+                </div>
               </div>
             </motion.div>
           </motion.div>
