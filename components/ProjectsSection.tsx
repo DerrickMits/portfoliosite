@@ -10,6 +10,8 @@ const ZAPIER_GUIDE_URL =
   "https://ledger-article-site.vercel.app/articles/zapier-workflow-automation-guide";
 const CAMPAIGN_ROI_URL =
   "https://ledger-article-site.vercel.app/articles/optimizing-marketing-spend-data-modeling";
+const BAD_DEBT_URL =
+  "https://ledger-article-site.vercel.app/articles/reducing-bad-debt-healthcare-credit-risk";
 
 const projects: Project[] = [
   {
@@ -29,6 +31,8 @@ const projects: Project[] = [
     tools: ["Smartsheet", "Salesforce", "HubSpot", "Advanced Excel"],
     outcome:
       "Reduced bad debt and outstanding receivables by 20% across 120 accounts.",
+    link: BAD_DEBT_URL,
+    ctaText: "Read Workflow Breakdown",
   },
   {
     title: "Campaign ROI & Performance Visualization Dashboard",
