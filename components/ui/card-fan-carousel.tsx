@@ -53,11 +53,18 @@ function getSlotConfig(totalCards: number, slot: number) {
   const center = totalCards >> 1;
   const distance = totalCards > 1 ? (slot - center) / center : 0;
   const absDistance = Math.abs(distance);
+  // Scale horizontal/vertical offsets by totalCards / MAX_VISIBLE so layouts
+  // with fewer cards stay tight and on-screen. With the original math, 3
+  // cards spread to x = +/-30rem (~480px) which pushed the side cards
+  // outside the visible area. The density factor keeps the fan looking
+  // balanced for any small totalCards (3..6) while preserving the
+  // original 7+ behavior.
+  const density = totalCards / MAX_VISIBLE;
   return {
-    rot: distance * 21,
+    rot: distance * 21 * Math.min(density * 1.4, 1),
     scale: 1.0 - 0.2244 * absDistance * absDistance,
-    x: distance * 30,
-    y: absDistance * absDistance * 7.3,
+    x: distance * 30 * density,
+    y: absDistance * absDistance * 7.3 * density,
     zIndex: 10 - Math.abs(slot - center),
   };
 }
