@@ -6,6 +6,7 @@ import RecommendationsSection from "@/components/RecommendationsSection";
 import ProjectsSection from "@/components/ProjectsSection";
 import SkillsSection from "@/components/SkillsSection";
 import BlogSection from "@/components/BlogSection";
+import BeyondWorkSection from "@/components/BeyondWorkSection";
 import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 
@@ -21,6 +22,7 @@ export default function Home() {
       <ProjectsSection />
       <SkillsSection />
       <BlogSection posts={posts} />
+      <BeyondWorkSection />
       <ContactSection />
       <Footer />
     </>
