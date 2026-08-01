@@ -5,11 +5,15 @@ import nodemailer from "nodemailer";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// --- Lazy KV init (token extracted from STORAGE_REDIS_URL password field) ---
+// --- Lazy KV init (convert redis:// to https:// for Upstash client) ---
 let _kv: ReturnType<typeof createClient> | null = null;
 function getKv() {
-  const redisUrl = process.env.STORAGE_REDIS_URL;
-  if (!redisUrl) return null;
+  const envUrl = process.env.STORAGE_REDIS_URL;
+  if (!envUrl) return null;
+  let redisUrl = envUrl;
+  if (redisUrl.startsWith("redis://")) {
+    redisUrl = "https://" + redisUrl.slice(8);
+  }
   if (!_kv) {
     let token = "";
     try { token = new URL(redisUrl).password ?? ""; } catch { /* use empty token */ }
@@ -18,22 +22,12 @@ function getKv() {
   return _kv;
 }
 
-// --- Constants ---
 const CALENDLY_URL = "https://calendly.com/derrickodiwuor/30min";
 
-// --- Types ---
 interface LeadPayload {
   name: string;
   email: string;
   project_details: string;
-}
-
-// --- Helpers ---
-async function saveLeadToKV(kv: ReturnType<typeof createClient>, lead: Record<string, unknown>) {
-  const key = `consulting:lead:${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  await kv.zadd("consulting:leads:by:time", { score: Date.now(), member: key });
-  await kv.set(key, JSON.stringify(lead));
-  return key;
 }
 
 async function sendNotificationEmail(lead: { name: string; email: string; project_details: string }) {
@@ -57,7 +51,6 @@ async function sendNotificationEmail(lead: { name: string; email: string; projec
   return true;
 }
 
-// --- Route ---
 export async function POST(request: Request) {
   let body: LeadPayload;
   try {
@@ -76,7 +69,6 @@ export async function POST(request: Request) {
   const trimmedDetails = project_details.trim();
   const timestamp = new Date().toISOString();
 
-  // Send notification email in parallel
   let emailSent = false;
   try {
     emailSent = await sendNotificationEmail({ name: trimmedName, email: trimmedEmail, project_details: trimmedDetails });
@@ -84,31 +76,27 @@ export async function POST(request: Request) {
     console.error("Failed to send notification email:", err);
   }
 
-  // Persist lead in KV if configured
   const kv = getKv();
   if (kv) {
     try {
-      await saveLeadToKV(kv, {
-        name: trimmedName,
-        email: trimmedEmail,
-        project_details: trimmedDetails,
-        submittedAt: timestamp,
-        checked: false,
-        booked: false,
-      });
+      const key = `consulting:lead:${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      await kv.zadd("consulting:leads:by:time", { score: Date.now(), member: key });
+      await kv.set(key, JSON.stringify({
+        name: trimmedName, email: trimmedEmail, project_details: trimmedDetails,
+        submittedAt: timestamp, checked: false, booked: false,
+      }));
     } catch (err) {
       console.error("Failed to save lead to KV:", err);
     }
   }
 
-  // Build pre-filled Calendly URL
   const calendlyUrl = new URL(CALENDLY_URL);
   calendlyUrl.searchParams.set("name", trimmedName);
   calendlyUrl.searchParams.set("email", trimmedEmail);
 
   return NextResponse.json({
     status: "success",
-    message: emailSent ? "Email sent + redirecting to Calendly" : "Redirecting to Calendly (email not sent — check SMTP config)",
+    message: emailSent ? "Email sent + redirecting to Calendly" : "Redirecting to Calendly",
     redirectUrl: calendlyUrl.toString(),
     emailSent,
   }, { status: 200 });

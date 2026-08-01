@@ -5,28 +5,28 @@ import nodemailer from "nodemailer";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// --- Lazy KV init (token extracted from STORAGE_REDIS_URL password field) ---
+// --- Lazy KV init (convert redis:// to https:// for Upstash client) ---
 let _kv: ReturnType<typeof createClient> | null = null;
 function getKv() {
-  const redisUrl = process.env.STORAGE_REDIS_URL;
-  if (!redisUrl) return null;
+  const envUrl = process.env.STORAGE_REDIS_URL;
+  if (!envUrl) return null;
+  let redisUrl = envUrl;
+  if (redisUrl.startsWith("redis://")) {
+    redisUrl = "https://" + redisUrl.slice(8);
+  }
   if (!_kv) {
     let token = "";
-    try {
-      token = new URL(redisUrl).password ?? "";
-    } catch { /* use empty token */ }
+    try { token = new URL(redisUrl).password ?? ""; } catch { /* use empty token */ }
     _kv = createClient({ url: redisUrl, token });
   }
   return _kv;
 }
 
-// --- Constants ---
 const CALENDLY_TOKEN = process.env.CALENDLY_TOKEN ?? "";
 const CALENDLY_USERNAME = "derrickodiwuor";
 const CRON_SECRET = process.env.CRON_SECRET || "";
 const FIFTEEN_MIN = 15 * 60 * 1000;
 
-// --- Types ---
 interface LeadRecord {
   name: string;
   email: string;
@@ -36,7 +36,6 @@ interface LeadRecord {
   booked: boolean;
 }
 
-// --- Helpers ---
 async function checkCalendlyBooking(email: string): Promise<boolean> {
   const since = new Date(Date.now() - 30 * 60 * 1000).toISOString();
   const url = `https://api.calendly.com/scheduled_events?invitee_email=${encodeURIComponent(email)}&min_start_time=${encodeURIComponent(since)}`;
@@ -51,9 +50,15 @@ async function checkCalendlyBooking(email: string): Promise<boolean> {
 async function sendFollowUpEmail(lead: LeadRecord) {
   const smtpUser = process.env.SMTP_USER;
   const smtpPass = process.env.SMTP_PASS;
-  if (!smtpUser || !smtpPass) return;
+  if (!smtpUser || !smtpPass) {
+    console.log(`[SKIP SMTP] No SMTP — skipping follow-up for ${lead.email}`);
+    return;
+  }
   const smtpFrom = process.env.SMTP_FROM || smtpUser;
-  const transporter = nodemailer.createTransport({ service: "gmail", auth: { user: smtpUser, pass: smtpPass } });
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: { user: smtpUser, pass: smtpPass },
+  });
   await transporter.sendMail({
     from: `"Derrick Odiwuor" <${smtpFrom}>`,
     to: lead.email,
@@ -62,7 +67,6 @@ async function sendFollowUpEmail(lead: LeadRecord) {
   });
 }
 
-// --- Route ---
 export async function GET(_req: Request) {
   let searchParams: URLSearchParams;
   try {
