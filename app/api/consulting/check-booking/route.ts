@@ -1,19 +1,24 @@
 import { NextResponse } from "next/server";
-import nodemailer from "nodemailer";
 import { createClient } from "@vercel/kv";
+import nodemailer from "nodemailer";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// --- KV client ---
-const kv = createClient({
-  url: process.env.KV_REST_API_URL ?? "",
-  token: process.env.KV_REST_API_TOKEN ?? "",
-});
+// --- Lazy KV init (only when env vars are present) ---
+let _kv: ReturnType<typeof createClient> | null = null;
+function getKv() {
+  const url = process.env.KV_REST_API_URL;
+  const token = process.env.KV_REST_API_TOKEN;
+  if (!url || !token) return null;
+  if (!_kv) _kv = createClient({ url, token });
+  return _kv;
+}
 
 // --- Constants ---
 const CALENDLY_TOKEN = process.env.CALENDLY_TOKEN!;
 const CALENDLY_USERNAME = "derrickodiwuor";
+const CRON_SECRET = process.env.CRON_SECRET || "";
 const FIFTEEN_MIN = 15 * 60 * 1000;
 
 // --- Types ---
@@ -26,12 +31,7 @@ interface LeadRecord {
   booked: boolean;
 }
 
-// --- Helpers ---
-async function kvGetString(key: string): Promise<string | null> {
-  const val = await kv.get(key);
-  return typeof val === "string" ? val : null;
-}
-
+// --- Calendly helper ---
 async function checkCalendlyBooking(email: string): Promise<boolean> {
   const since = new Date(Date.now() - 30 * 60 * 1000).toISOString();
   const url = `https://api.calendly.com/scheduled_events?invitee_email=${encodeURIComponent(email)}&min_start_time=${encodeURIComponent(since)}`;
@@ -42,18 +42,19 @@ async function checkCalendlyBooking(email: string): Promise<boolean> {
     },
   });
   if (!res.ok) {
-    console.error(`Calendly API ${res.status}`);
+    console.error(`Calendly API error: ${res.status}`);
     return false;
   }
   const data = (await res.json()) as { collection?: unknown[] };
   return Array.isArray(data.collection) && data.collection.length > 0;
 }
 
+// --- Email helper ---
 async function sendFollowUpEmail(lead: LeadRecord) {
   const smtpUser = process.env.SMTP_USER;
   const smtpPass = process.env.SMTP_PASS;
   if (!smtpUser || !smtpPass) {
-    console.log(`[SKIP SMTP] ${lead.email}`);
+    console.log(`[SKIP SMTP] No SMTP configured — skipping follow-up for ${lead.email}`);
     return;
   }
   const smtpFrom = process.env.SMTP_FROM || smtpUser;
@@ -69,16 +70,50 @@ async function sendFollowUpEmail(lead: LeadRecord) {
   });
 }
 
+// --- KV helper ---
+async function getStoredLeads(): Promise<LeadRecord[]> {
+  const kv = getKv();
+  if (!kv) return [];
+  const keys = await kv.keys("consulting:lead:*");
+  const leads: LeadRecord[] = [];
+  for (const key of keys) {
+    const raw = await kv.get(key);
+    if (!raw || typeof raw !== "string") continue;
+    try {
+      leads.push(JSON.parse(raw));
+    } catch { /* skip corrupt */ }
+  }
+  return leads;
+}
+
 // --- Route ---
 export async function GET(_req: Request) {
-  const reqUrl = _req.url || new URL("/api/consulting/check-booking", "http://localhost").toString();
-  const url = new URL(reqUrl, "http://localhost");
-  if (process.env.CRON_SECRET && url.searchParams.get("secret") !== process.env.CRON_SECRET) {
+  // Parse URL safely (Vercel serverless sometimes passes empty request.url)
+  let searchParams: URLSearchParams;
+  try {
+    const reqUrl = _req.url || "http://localhost/api/consulting/check-booking";
+    const url = new URL(reqUrl);
+    searchParams = url.searchParams;
+  } catch {
+    searchParams = new URLSearchParams();
+  }
+
+  // Secret guard
+  if (CRON_SECRET && searchParams.get("secret") !== CRON_SECRET) {
     return NextResponse.json({ status: "error", message: "Unauthorized" }, { status: 401 });
   }
 
+  // Bail early if KV is not configured
+  const kv = getKv();
+  if (!kv) {
+    return NextResponse.json({
+      status: "error",
+      message: "Vercel KV not configured — set KV_REST_API_URL and KV_REST_API_TOKEN",
+    }, { status: 500 });
+  }
+
   if (!CALENDLY_TOKEN) {
-    return NextResponse.json({ status: "error", message: "CALENDLY_TOKEN missing" }, { status: 500 });
+    return NextResponse.json({ status: "error", message: "CALENDLY_TOKEN not configured" }, { status: 500 });
   }
 
   const now = Date.now();
@@ -86,19 +121,9 @@ export async function GET(_req: Request) {
   let followedUp = 0;
 
   try {
-    const keys = await kv.keys("consulting:lead:*");
+    const leads = await getStoredLeads();
 
-    for (const key of keys) {
-      const raw = await kvGetString(key);
-      if (!raw) continue;
-
-      let lead: LeadRecord;
-      try {
-        lead = JSON.parse(raw);
-      } catch {
-        continue;
-      }
-
+    for (const lead of leads) {
       if (lead.checked) continue;
       if (now - new Date(lead.submittedAt).getTime() < FIFTEEN_MIN) continue;
 
@@ -115,10 +140,12 @@ export async function GET(_req: Request) {
           await sendFollowUpEmail(lead);
           followedUp++;
         } catch (err) {
-          console.error(`Follow-up failed for ${lead.email}:`, err);
+          console.error(`Follow-up email failed for ${lead.email}:`, err);
         }
       }
 
+      // Mark as processed
+      const key = `consulting:lead:${new Date(lead.submittedAt).getTime()}-${encodeURIComponent(lead.email)}`;
       await kv.hset(key, { checked: "1", booked: booked ? "1" : "0" });
     }
   } catch (err) {
