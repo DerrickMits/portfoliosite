@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Send, CheckCircle, AlertCircle } from "lucide-react";
+import { CheckCircle, AlertCircle } from "lucide-react";
 import { ContactFormData } from "@/lib/types";
 
 function validateForm(data: ContactFormData): Record<string, string> {
@@ -213,12 +213,9 @@ export default function ArchitectContact() {
                 <span className="animate-spin inline-block w-4 h-4 border-2 border-cream/30 border-t-cream dark:border-accent/30 dark:border-t-accent rounded-full" />
                 Sending...
               </>
-            ) : (
-              <>
-                <Send className="w-4 h-4" />
-                Submit Inquiry
-              </>
-            )}
+      ) : (
+        <>Submit Inquiry</>
+      )}
           </button>
 
           {/* Status */}
