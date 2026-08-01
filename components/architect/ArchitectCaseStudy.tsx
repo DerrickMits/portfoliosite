@@ -130,7 +130,7 @@ export default function ArchitectCaseStudy() {
                         CRM Sync
                       </span>
                       <span className="text-[11px] text-grey-500 dark:text-warm-500">
-                        HubSpot Production
+                        GoHighLevel Production
                       </span>
                     </div>
                   </div>
