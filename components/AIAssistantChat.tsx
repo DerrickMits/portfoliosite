@@ -9,8 +9,9 @@ import { formatContextPreamble } from "@/components/architect/pageContext";
 
 /**
  * Embedded assistant chat panel for the portfolio. Streams from the deployed
- * AI Assistant's /api/chat (CORS-enabled) so the assistant's knowledge engine
- * and system prompt drive responses exactly as the standalone app would.
+ * AI Assistant's /api/chat (CORS-enabled). A hidden page-context preamble is
+ * sent with every request so the AI always knows which page the visitor is on
+ * — without that content ever appearing in the visible chat UI.
  */
 const AI_ASSISTANT_URL =
   process.env.NEXT_PUBLIC_AI_ASSISTANT_URL ||
@@ -29,22 +30,38 @@ export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: "smooth",
+    });
   }, [messages, busy]);
 
   const contextPreamble = formatContextPreamble();
 
   const send = async (text?: string) => {
-  const content = (text ?? input).trim();
-  if (!content || busy) return;
+    const content = (text ?? input).trim();
+    if (!content || busy) return;
 
-  // Prepend page-context system message on first turn, then carry it along
-  const contextMsg: Msg = { role: "assistant", content: contextPreamble };
-  const history: Msg[] =
-    messages.length === 0 ? [contextMsg] : messages;
+    // Page context is a hidden system message — it's sent to the backend
+    // so the AI knows which page the user is on, but it never appears
+    // in the visible chat conversation.
+    const systemMsg = { role: "system" as const, content: contextPreamble };
 
-  const next: Msg[] = [...history, { role: "user", content }];
-  setMessages([...next, { role: "assistant", content: "" }]);
+    const prior = messages.map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
+    const next = [...prior, { role: "user" as const, content }];
+
+    // Only render user + assistant turns — system message is kept in the
+    // outbound payload but excluded from what gets shown in the chat.
+    setMessages([
+      ...next.map((m) => ({
+        role: m.role as Msg["role"],
+        content: m.content,
+      })),
+      { role: "assistant", content: "" },
+    ]);
     setInput("");
     setBusy(true);
 
@@ -52,7 +69,10 @@ export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
       const res = await fetch(`${AI_ASSISTANT_URL}/api/chat`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ model: "flash", messages: next.map((m) => ({ role: m.role, content: m.content })) }),
+        body: JSON.stringify({
+          model: "flash",
+          messages: [systemMsg, ...next],
+        }),
       });
       if (!res.ok || !res.body) throw new Error(`chat failed: ${res.status}`);
 
@@ -123,7 +143,10 @@ export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
           </button>
         </header>
 
-        <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-5 space-y-4">
+        <div
+          ref={scrollRef}
+          className="flex-1 overflow-y-auto px-4 py-5 space-y-4"
+        >
           {messages.length === 0 && (
             <div className="text-center pt-10">
               <span className="inline-block w-12 h-12 rounded-full bg-gradient-to-br from-amber-300 to-violet-300 grid place-items-center mb-4">
@@ -176,7 +199,7 @@ export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
                     )}
                   </>
                 ) : (
-                  m.content || (m.role === "assistant" ? "" : "")
+                  m.content || ""
                 )}
               </div>
             </div>
