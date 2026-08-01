@@ -59,31 +59,36 @@ export default function ArchitectContact() {
     setStatus("sending");
 
     try {
-      const res = await fetch("/api/contact", {
+      const res = await fetch("/api/webhook/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          project_details: formData.message,
+        }),
       });
 
       const data = await res.json().catch(() => ({}));
 
-      if (!res.ok) {
-        if (data.errors) {
-          setErrors(data.errors as Record<string, string>);
-          setStatus("idle");
-          return;
-        }
-        throw new Error(data.error || "Request failed");
+      if (!res.ok || data.status === "error") {
+        throw new Error(data.message || "Something went wrong");
       }
 
-      setStatus("success");
-      setFormData({ name: "", email: "", subject: "", message: "" });
-      window.location.href = "https://mail.google.com/mail/u/0/#inbox";
-    } catch {
+      // Redirect to the Calendly URL returned by the API
+      if (data.redirectUrl) {
+        window.location.href = data.redirectUrl;
+      } else {
+        throw new Error("No redirect URL returned");
+      }
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Please email me directly at derrickodiwuor@gmail.com";
+      setErrors({ form: message });
       setStatus("error");
     }
 
-    setTimeout(() => setStatus("idle"), 5000);
+    setTimeout(() => setStatus("idle"), 8000);
   };
 
   // Minimalist underline field — 1px grey bottom border, 2px accent on focus.
