@@ -58,8 +58,10 @@ export default function ArchitectContact() {
 
     setStatus("sending");
 
+    // Fire the API call in the background and immediately redirect to Calendly
+    // so the user never waits — lead data is sent async.
     try {
-      const res = await fetch("/api/consulting/contact", {
+      fetch("/api/consulting/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -67,30 +69,16 @@ export default function ArchitectContact() {
           email: formData.email,
           project_details: formData.message,
         }),
+      }).catch(() => {
+        // Silent fail — user is already on Calendly
       });
+    } catch { /* ignore */ }
 
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok || data.status === "error") {
-        throw new Error(data.message || "Something went wrong");
-      }
-
-      setStatus("success");
-      setFormData({ name: "", email: "", subject: "", message: "" });
-
-      // Redirect to Calendly with pre-filled lead data
-      const calendlyUrl = new URL("https://calendly.com/derrickodiwuor/30min");
-      calendlyUrl.searchParams.set("name", formData.name);
-      calendlyUrl.searchParams.set("email", formData.email);
-      window.location.replace(calendlyUrl.toString());
-    } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Please email me directly at derrickodiwuor@gmail.com";
-      setErrors({ form: message });
-      setStatus("error");
-    }
-
-    setTimeout(() => setStatus("idle"), 8000);
+    // Immediately redirect to Calendly with pre-filled lead data
+    const calendlyUrl = new URL("https://calendly.com/derrickodiwuor/30min");
+    calendlyUrl.searchParams.set("name", formData.name);
+    calendlyUrl.searchParams.set("email", formData.email);
+    window.location.replace(calendlyUrl.toString());
   };
 
   // Minimalist underline field — 1px grey bottom border, 2px accent on focus.
