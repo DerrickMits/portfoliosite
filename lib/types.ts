@@ -39,3 +39,12 @@ export interface ContactFormData {
   subject: string;
   message: string;
 }
+
+export interface RoiCalculatorFormData {
+  name: string;
+  email: string;
+  company: string;
+  teamSize: number;
+  hoursPerWeek: number;
+  hourlyRate: number;
+}

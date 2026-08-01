@@ -1,17 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
 import { X, Send, Loader2, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { formatContextPreamble } from "@/components/architect/pageContext";
 
 /**
  * Embedded assistant chat panel for the portfolio. Streams from the deployed
- * AI Assistant's /api/chat (CORS-enabled). A hidden page-context preamble is
- * sent with every request so the AI always knows which page the visitor is on
- * — without that content ever appearing in the visible chat UI.
+ * AI Assistant's /api/chat (CORS-enabled). Sends only user/assistant chat
+ * turns — no hidden system injection, keeping the conversation clean.
  */
 const AI_ASSISTANT_URL =
   process.env.NEXT_PUBLIC_AI_ASSISTANT_URL ||
@@ -23,7 +20,6 @@ interface Msg {
 }
 
 export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
-  const pathname = usePathname();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -36,16 +32,9 @@ export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
     });
   }, [messages, busy]);
 
-  const contextPreamble = formatContextPreamble();
-
   const send = async (text?: string) => {
     const content = (text ?? input).trim();
     if (!content || busy) return;
-
-    // Page context is a hidden system message — it's sent to the backend
-    // so the AI knows which page the user is on, but it never appears
-    // in the visible chat conversation.
-    const systemMsg = { role: "system" as const, content: contextPreamble };
 
     const prior = messages.map((m) => ({
       role: m.role,
@@ -53,8 +42,6 @@ export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
     }));
     const next = [...prior, { role: "user" as const, content }];
 
-    // Only render user + assistant turns — system message is kept in the
-    // outbound payload but excluded from what gets shown in the chat.
     setMessages([
       ...next.map((m) => ({
         role: m.role as Msg["role"],
@@ -71,7 +58,7 @@ export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           model: "flash",
-          messages: [systemMsg, ...next],
+          messages: next,
         }),
       });
       if (!res.ok || !res.body) throw new Error(`chat failed: ${res.status}`);
@@ -180,7 +167,9 @@ export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
           {messages.map((m, i) => (
             <div
               key={i}
-              className={m.role === "user" ? "flex justify-end" : "flex justify-start"}
+              className={
+                m.role === "user" ? "flex justify-end" : "flex justify-start"
+              }
             >
               <div
                 className={
@@ -189,7 +178,8 @@ export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
                     : "max-w-[85%] rounded-2xl rounded-tl-sm px-3.5 py-2.5 text-sm bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 text-warm-800 dark:text-warm-100 prose-chat"
                 }
               >
-                {m.role === "assistant" && (m.content || busy && i === messages.length - 1) ? (
+                {m.role === "assistant" &&
+                (m.content || (busy && i === messages.length - 1)) ? (
                   <>
                     <MarkdownChannel content={m.content} />
                     {busy && i === messages.length - 1 && !m.content && (
@@ -208,7 +198,10 @@ export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
 
         <form
           className="border-t border-warm-200 dark:border-warm-800 p-3"
-          onSubmit={(e) => { e.preventDefault(); send(); }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            send();
+          }}
         >
           <div className="flex items-end gap-1.5 rounded-2xl bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 pl-4 pr-2 py-1.5 focus-within:border-warm-300 dark:focus-within:border-warm-500 transition-colors">
             <textarea
@@ -242,9 +235,7 @@ export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
 function MarkdownChannel({ content }: { content: string }) {
   return (
     <div className="prose-chat-body">
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-        {content}
-      </ReactMarkdown>
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
     </div>
   );
 }
