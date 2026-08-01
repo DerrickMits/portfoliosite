@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import { Sun, Moon, Menu, X, Sparkles, ChevronDown, ArrowUpRight } from "lucide-react";
@@ -58,6 +59,7 @@ const contentItems: ContentItem[] = [
 ];
 
 export default function Navbar() {
+  const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -93,6 +95,8 @@ export default function Navbar() {
   const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
   const closeMobile = () => setMobileOpen(false);
 
+  const isConsulting = pathname === "/architect";
+
   return (
     <>
       <header
@@ -103,89 +107,98 @@ export default function Navbar() {
         }`}
       >
         <nav className="max-w-6xl mx-auto px-6 md:px-8 h-16 flex items-center justify-between">
-          {/* Brand */}
-          <a
-            href="#about"
-            className="font-display text-xl font-bold text-warm-900 dark:text-warm-100 hover:text-warm-700 dark:hover:text-warm-300 transition-colors"
-          >
-            Derrick Odiwuor
-          </a>
+          {/* Brand — links back to portfolio home on /; shows name with ← arrow on /architect */}
+          {isConsulting ? (
+            <Link
+              href="/"
+              className="font-display text-xl font-bold text-warm-900 dark:text-cream hover:text-warm-700 dark:hover:text-warm-300 transition-colors inline-flex items-center gap-2"
+            >
+              <span aria-hidden="true">←</span> Derrick Odiwuor
+            </Link>
+          ) : (
+            <Link
+              href="/"
+              className="font-display text-xl font-bold text-warm-900 dark:text-warm-100 hover:text-warm-700 dark:hover:text-warm-300 transition-colors"
+            >
+              Derrick Odiwuor
+            </Link>
+          )}
 
-          {/* Desktop Links */}
-          <div className="hidden md:flex items-center gap-1">
-            {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                {...(("external" in link) && link.external
-                  ? { target: "_blank", rel: "noopener noreferrer" }
-                  : {})}
-                {...(("external" in link) && link.external
-                  ? { className: "px-3 py-2 rounded-lg text-sm font-bold bg-gradient-to-r from-amber-300/30 to-violet-300/30 text-warm-900 dark:text-warm-100 hover:from-amber-300/50 hover:to-violet-300/50 transition-colors" }
-                  : { className: "px-3 py-2 rounded-lg text-sm font-medium text-warm-600 dark:text-warm-400 hover:text-warm-900 dark:hover:text-warm-100 hover:bg-warm-100 dark:hover:bg-warm-800 transition-colors" })}
-              >
-                {("external" in link) && link.external
-                  ? <span className="inline-flex items-center gap-1.5">{link.label}<Sparkles className="w-3.5 h-3.5" /></span>
-                  : link.label}
-              </a>
-            ))}
+          {/* Desktop Links — hidden on /architect */}
+          {!isConsulting && (
+            <div className="hidden md:flex items-center gap-1">
+              {navLinks.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  {...(("external" in link) && link.external
+                    ? { target: "_blank", rel: "noopener noreferrer" }
+                    : {})}
+                  {...(("external" in link) && link.external
+                    ? { className: "px-3 py-2 rounded-lg text-sm font-bold bg-gradient-to-r from-amber-300/30 to-violet-300/30 text-warm-900 dark:text-warm-100 hover:from-amber-300/50 hover:to-violet-300/50 transition-colors" }
+                    : { className: "px-3 py-2 rounded-lg text-sm font-medium text-warm-600 dark:text-warm-400 hover:text-warm-900 dark:hover:text-warm-100 hover:bg-warm-100 dark:hover:bg-warm-800 transition-colors" })}
+                >
+                  {("external" in link) && link.external ? <span className="inline-flex items-center gap-1.5">{link.label}<Sparkles className="w-3.5 h-3.5" /></span> : link.label}
+                </a>
+              ))}
 
-            {/* Content dropdown */}
-            <div ref={contentRef} className="relative">
-              <button
-                type="button"
-                aria-haspopup="menu"
-                aria-expanded={contentOpen}
-                onClick={() => setContentOpen((v) => !v)}
-                className={`inline-flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  contentOpen
-                    ? "bg-warm-100 dark:bg-warm-800 text-warm-900 dark:text-warm-100"
-                    : "text-warm-600 dark:text-warm-400 hover:text-warm-900 dark:hover:text-warm-100 hover:bg-warm-100 dark:hover:bg-warm-800"
-                }`}
-              >
-                Content
-                <ChevronDown
-                  className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                    contentOpen ? "rotate-180" : ""
+              {/* Content dropdown */}
+              <div ref={contentRef} className="relative">
+                <button
+                  type="button"
+                  aria-haspopup="menu"
+                  aria-expanded={contentOpen}
+                  onClick={() => setContentOpen((v) => !v)}
+                  className={`inline-flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    contentOpen
+                      ? "bg-warm-100 dark:bg-warm-800 text-warm-900 dark:text-warm-100"
+                      : "text-warm-600 dark:text-warm-400 hover:text-warm-900 dark:hover:text-warm-100 hover:bg-warm-100 dark:hover:bg-warm-800"
                   }`}
-                />
-              </button>
-              <AnimatePresence>
-                {contentOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.15, ease: "easeOut" }}
-                    role="menu"
-                    className="absolute right-0 mt-2 w-72 rounded-xl bg-cream dark:bg-warm-900 border border-warm-200 dark:border-warm-800 shadow-lg p-2 z-50"
-                  >
-                    {contentItems.map((item) => (
-                      <a
-                        key={item.href}
-                        href={item.href}
-                        role="menuitem"
-                        {...(item.external
-                          ? { target: "_blank", rel: "noopener noreferrer" }
-                          : {})}
-                        onClick={() => setContentOpen(false)}
-                        className="flex flex-col gap-0.5 px-3 py-2.5 rounded-lg text-warm-700 dark:text-warm-300 hover:bg-warm-100 dark:hover:bg-warm-800 hover:text-warm-900 dark:hover:text-warm-100 transition-colors"
-                      >
-                        <span className="text-sm font-semibold">{item.label}</span>
-                        <span className="text-xs text-warm-500 dark:text-warm-400 font-normal">
-                          {item.description}
-                        </span>
-                      </a>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                >
+                  Content
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                      contentOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+                <AnimatePresence>
+                  {contentOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
+                      role="menu"
+                      className="absolute right-0 mt-2 w-72 rounded-xl bg-cream dark:bg-warm-900 border border-warm-200 dark:border-warm-800 shadow-lg p-2 z-50"
+                    >
+                      {contentItems.map((item) => (
+                        <a
+                          key={item.href}
+                          href={item.href}
+                          role="menuitem"
+                          {...(item.external
+                            ? { target: "_blank", rel: "noopener noreferrer" }
+                            : {})}
+                          onClick={() => setContentOpen(false)}
+                          className="flex flex-col gap-0.5 px-3 py-2.5 rounded-lg text-warm-700 dark:text-warm-300 hover:bg-warm-100 dark:hover:bg-warm-800 hover:text-warm-900 dark:hover:text-warm-100 transition-colors"
+                        >
+                          <span className="text-sm font-semibold">{item.label}</span>
+                          <span className="text-xs text-warm-500 dark:text-warm-400 font-normal">
+                            {item.description}
+                          </span>
+                        </a>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* AI Assistant CTA + Theme Toggle + Mobile Menu */}
           <div className="flex items-center gap-3">
-            {/* Primary CTA - AI Assistant, positioned on the far right */}
+            {/* AI Assistant pill — always visible */}
             <a
               href={AI_ASSISTANT_URL}
               target="_blank"
@@ -251,61 +264,87 @@ export default function Navbar() {
               className="absolute top-0 right-0 bottom-0 w-72 bg-white dark:bg-warm-900 border-l border-warm-200 dark:border-warm-800 shadow-2xl pt-20 px-6"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex flex-col gap-1">
-                {navLinks.map((link) => {
-                  const isExt = ("external" in link) && link.external;
-                  return (
-                    <a
-                      key={link.href}
-                      href={link.href}
-                      onClick={closeMobile}
-                      {...(isExt ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                      className={
-                        isExt
-                          ? "inline-flex items-center gap-2 px-4 py-3 rounded-xl text-lg font-bold bg-gradient-to-r from-amber-300/30 to-violet-300/30 text-warm-900 dark:text-warm-100"
-                          : "px-4 py-3 rounded-xl text-lg font-medium text-warm-700 dark:text-warm-300 hover:bg-warm-100 dark:hover:bg-warm-800 hover:text-warm-900 dark:hover:text-warm-100 transition-colors"
-                      }
-                    >
-                      {link.label}
-                      {isExt && <Sparkles className="w-4 h-4" />}
-                    </a>
-                  );
-                })}
+              {!isConsulting && (
+                <div className="flex flex-col gap-1">
+                  {navLinks.map((link) => {
+                    const isExt = ("external" in link) && (link as { external?: boolean }).external;
+                    return (
+                      <a
+                        key={link.href}
+                        href={link.href}
+                        onClick={closeMobile}
+                        {...(isExt ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                        className={
+                          isExt
+                            ? "inline-flex items-center gap-2 px-4 py-3 rounded-xl text-lg font-bold bg-gradient-to-r from-amber-300/30 to-violet-300/30 text-warm-900 dark:text-warm-100"
+                            : "px-4 py-3 rounded-xl text-lg font-medium text-warm-700 dark:text-warm-300 hover:bg-warm-100 dark:hover:bg-warm-800 hover:text-warm-900 dark:hover:text-warm-100 transition-colors"
+                        }
+                      >
+                        {link.label}
+                        {isExt && <Sparkles className="w-4 h-4" />}
+                      </a>
+                    );
+                  })}
 
-                {/* Content group heading + sub-items in the mobile drawer */}
-                <div className="mt-4 pt-4 border-t border-warm-200 dark:border-warm-800">
-                  {/* AI Assistant CTA in mobile drawer */}
+                  {/* Content group heading + sub-items in the mobile drawer */}
+                  <div className="mt-4 pt-4 border-t border-warm-200 dark:border-warm-800">
+                    {/* AI Assistant CTA in mobile drawer */}
+                    <a
+                      href={AI_ASSISTANT_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={closeMobile}
+                      className="mb-3 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-full text-base font-semibold text-warm-900 dark:text-warm-50 bg-gradient-to-r from-amber-300 to-violet-300 shadow-sm"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      {AI_ASSISTANT_LABEL}
+                      <ArrowUpRight className="w-4 h-4" />
+                    </a>
+                    <p className="px-4 mb-2 text-xs uppercase tracking-[0.2em] font-semibold text-warm-500 dark:text-warm-400">
+                      Content
+                    </p>
+                    <div className="flex flex-col gap-1">
+                      {contentItems.map((item) => (
+                        <a
+                          key={item.href}
+                          href={item.href}
+                          onClick={closeMobile}
+                          {...(item.external
+                            ? { target: "_blank", rel: "noopener noreferrer" }
+                            : {})}
+                          className="px-4 py-3 rounded-xl text-base font-medium text-warm-600 dark:text-warm-400 hover:bg-warm-100 dark:hover:bg-warm-800 hover:text-warm-900 dark:hover:text-warm-100 transition-colors"
+                        >
+                          {item.label}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* /architect — minimal mobile menu: back link + AI + theme */}
+              {isConsulting && (
+                <div className="flex flex-col gap-3">
+                  <Link
+                    href="/"
+                    onClick={closeMobile}
+                    className="px-4 py-3 rounded-xl text-base font-medium text-warm-700 dark:text-warm-300 hover:bg-warm-100 dark:hover:bg-warm-800 transition-colors"
+                  >
+                    ← Back to Portfolio
+                  </Link>
                   <a
                     href={AI_ASSISTANT_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={closeMobile}
-                    className="mb-3 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-full text-base font-semibold text-warm-900 dark:text-warm-50 bg-gradient-to-r from-amber-300 to-violet-300 shadow-sm"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-full text-base font-semibold text-warm-900 dark:text-warm-50 bg-gradient-to-r from-amber-300 to-violet-300 shadow-sm"
                   >
                     <Sparkles className="w-4 h-4" />
                     {AI_ASSISTANT_LABEL}
                     <ArrowUpRight className="w-4 h-4" />
                   </a>
-                  <p className="px-4 mb-2 text-xs uppercase tracking-[0.2em] font-semibold text-warm-500 dark:text-warm-400">
-                    Content
-                  </p>
-                  <div className="flex flex-col gap-1">
-                    {contentItems.map((item) => (
-                      <a
-                        key={item.href}
-                        href={item.href}
-                        onClick={closeMobile}
-                        {...(item.external
-                          ? { target: "_blank", rel: "noopener noreferrer" }
-                          : {})}
-                        className="px-4 py-3 rounded-xl text-base font-medium text-warm-600 dark:text-warm-400 hover:bg-warm-100 dark:hover:bg-warm-800 hover:text-warm-900 dark:hover:text-warm-100 transition-colors"
-                      >
-                        {item.label}
-                      </a>
-                    ))}
-                  </div>
                 </div>
-              </div>
+              )}
             </motion.div>
           </motion.div>
         )}
