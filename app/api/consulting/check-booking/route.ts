@@ -71,8 +71,8 @@ async function sendFollowUpEmail(lead: LeadRecord) {
 
 // --- Route ---
 export async function GET(_req: Request) {
-  // Optional: guard with ?secret= query param
-  const url = new URL(_req.url);
+  const reqUrl = _req.url || new URL("/api/consulting/check-booking", "http://localhost").toString();
+  const url = new URL(reqUrl, "http://localhost");
   if (process.env.CRON_SECRET && url.searchParams.get("secret") !== process.env.CRON_SECRET) {
     return NextResponse.json({ status: "error", message: "Unauthorized" }, { status: 401 });
   }
