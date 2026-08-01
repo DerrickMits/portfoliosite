@@ -75,12 +75,14 @@ export default function ArchitectContact() {
         throw new Error(data.message || "Something went wrong");
       }
 
-      // Redirect to the Calendly URL returned by the API
-      if (data.redirectUrl) {
-        window.location.href = data.redirectUrl;
-      } else {
-        throw new Error("No redirect URL returned");
-      }
+      setStatus("success");
+      setFormData({ name: "", email: "", subject: "", message: "" });
+
+      // Redirect to Calendly with pre-filled lead data
+      const calendlyUrl = new URL("https://calendly.com/derrickodiwuor/30min");
+      calendlyUrl.searchParams.set("name", formData.name);
+      calendlyUrl.searchParams.set("email", formData.email);
+      window.location.replace(calendlyUrl.toString());
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Please email me directly at derrickodiwuor@gmail.com";
