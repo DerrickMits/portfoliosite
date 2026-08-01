@@ -62,7 +62,8 @@ export async function POST(request: Request) {
   };
   saveLead(lead);
 
-  // Send notification email to Derrick's inbox
+  // Send notification email to Derrick's inbox in parallel with Calendly prep
+  let emailSent = false;
   try {
     const smtpUser = process.env.SMTP_USER;
     const smtpPass = process.env.SMTP_PASS;
@@ -81,10 +82,10 @@ export async function POST(request: Request) {
         subject: `New Consulting Inquiry — ${name.trim()}`,
         text: `New lead from consulting page:\n\nName: ${name.trim()}\nEmail: ${email.trim()}\nProject Details: ${project_details.trim()}\n\nSubmitted: ${new Date().toLocaleString()}`,
       });
+      emailSent = true;
     }
   } catch (err) {
     console.error("Failed to send notification email:", err);
-    // Don't block the redirect if email fails
   }
 
   // Build pre-filled Calendly URL
@@ -94,7 +95,8 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     status: "success",
-    message: "Lead saved — redirecting to Calendly",
+    message: emailSent ? "Email sent + redirecting to Calendly" : "Redirecting to Calendly (email not sent — check SMTP config)",
     redirectUrl: calendlyUrl.toString(),
+    emailSent,
   }, { status: 200 });
 }

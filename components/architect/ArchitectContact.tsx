@@ -58,10 +58,10 @@ export default function ArchitectContact() {
 
     setStatus("sending");
 
-    // Fire the API call in the background and immediately redirect to Calendly
-    // so the user never waits — lead data is sent async.
+    // Brief await so we can see whether the email actually sent
+    // (the API now returns emailSent: true/false for debugging)
     try {
-      fetch("/api/consulting/contact", {
+      const res = await fetch("/api/consulting/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -69,10 +69,19 @@ export default function ArchitectContact() {
           email: formData.email,
           project_details: formData.message,
         }),
-      }).catch(() => {
-        // Silent fail — user is already on Calendly
       });
-    } catch { /* ignore */ }
+
+      const data = await res.json().catch(() => ({}));
+      console.log("[ConsultingForm] API response:", data);
+
+      if (!res.ok || data.status === "error") {
+        console.warn("[ConsultingForm] API error:", data);
+        // Still redirect — don't block the user
+      }
+    } catch (err) {
+      console.warn("[ConsultingForm] Fetch failed:", err);
+      // Still redirect — don't block the user
+    }
 
     // Immediately redirect to Calendly with pre-filled lead data
     const calendlyUrl = new URL("https://calendly.com/derrickodiwuor/30min");
