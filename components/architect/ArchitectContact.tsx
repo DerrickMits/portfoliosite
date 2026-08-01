@@ -78,6 +78,7 @@ export default function ArchitectContact() {
 
       setStatus("success");
       setFormData({ name: "", email: "", subject: "", message: "" });
+      window.location.href = "https://mail.google.com/mail/u/0/#inbox";
     } catch {
       setStatus("error");
     }
