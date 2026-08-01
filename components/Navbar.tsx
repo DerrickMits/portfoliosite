@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import { Sun, Moon, Menu, X, Sparkles, ChevronDown, ArrowUpRight } from "lucide-react";
@@ -24,6 +25,7 @@ const navLinks: NavLink[] = [
   { href: "#certifications", label: "Certifications" },
   { href: "#projects", label: "Projects" },
   { href: "#skills", label: "Skills" },
+  { href: "/architect", label: "Consulting" },
 ];
 
 // The AI Assistant is the nav's primary CTA - it lives on the far right
