@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { writeFileSync, mkdirSync, readdirSync, readFileSync } from "fs";
 import { join } from "path";
+import nodemailer from "nodemailer";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -60,6 +61,31 @@ export async function POST(request: Request) {
     checked: false,
   };
   saveLead(lead);
+
+  // Send notification email to Derrick's inbox
+  try {
+    const smtpUser = process.env.SMTP_USER;
+    const smtpPass = process.env.SMTP_PASS;
+    const smtpFrom = process.env.SMTP_FROM || smtpUser;
+
+    if (smtpUser && smtpPass) {
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: { user: smtpUser, pass: smtpPass },
+      });
+
+      await transporter.sendMail({
+        from: `"Consulting Form" <${smtpFrom}>`,
+        to: smtpFrom,
+        replyTo: email.trim(),
+        subject: `New Consulting Inquiry — ${name.trim()}`,
+        text: `New lead from consulting page:\n\nName: ${name.trim()}\nEmail: ${email.trim()}\nProject Details: ${project_details.trim()}\n\nSubmitted: ${new Date().toLocaleString()}`,
+      });
+    }
+  } catch (err) {
+    console.error("Failed to send notification email:", err);
+    // Don't block the redirect if email fails
+  }
 
   // Build pre-filled Calendly URL
   const calendlyUrl = new URL(CALENDLY_URL);
