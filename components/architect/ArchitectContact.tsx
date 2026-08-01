@@ -203,11 +203,11 @@ export default function ArchitectContact() {
             )}
           </div>
 
-          <button
-            type="submit"
-            disabled={status === "sending"}
-            className="self-center mt-2 inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-accent text-cream dark:bg-cream dark:text-accent font-medium transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-          >
+      <button
+        type="submit"
+        disabled={status === "sending"}
+        className="self-center mt-2 rounded-[100px] border-[1.5px] bg-[#1C1B18] px-10 py-3 text-sm font-semibold text-white transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)] hover:rounded-[12px] active:scale-[0.95] disabled:opacity-60 disabled:cursor-not-allowed"
+      >
             {status === "sending" ? (
               <>
                 <span className="animate-spin inline-block w-4 h-4 border-2 border-cream/30 border-t-cream dark:border-accent/30 dark:border-t-accent rounded-full" />

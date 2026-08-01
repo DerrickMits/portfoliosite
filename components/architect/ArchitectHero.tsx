@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { ArrowRight, Calendar } from "lucide-react";
+import { FlowButton } from "@/components/ui/flow-button";
 
 const metrics = [
   {
@@ -76,23 +77,19 @@ export default function ArchitectHero() {
           transition={{ duration: 0.6, delay: 0.18 }}
           className="flex flex-col sm:flex-row gap-4 mt-2 w-full sm:w-auto"
         >
-          <a
-            href="#case-studies"
-            className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-accent text-cream dark:bg-cream dark:text-accent font-medium transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
-          >
-            View Case Studies
-            <ArrowRight className="w-4 h-4" />
-          </a>
-          <a
+          <FlowButton
+            text="View Case Studies"
+            onClick={() => {
+              const el = document.getElementById("case-studies");
+              if (el) el.scrollIntoView({ behavior: "smooth" });
+            }}
+          />
+          <FlowButton
+            text="Schedule a Consultation"
             href="https://calendly.com/derrickodiwuor/30min"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl border border-grey-300 dark:border-warm-700 text-grey-700 dark:text-grey-300 font-medium hover:bg-grey-100 dark:hover:bg-warm-800 transition-all duration-200"
-          >
-            <Calendar className="w-4 h-4" />
-            Schedule a Consultation
-            <ArrowRight className="w-4 h-4" />
-          </a>
+          />
         </motion.div>
 
         {/* Metrics strip */}
