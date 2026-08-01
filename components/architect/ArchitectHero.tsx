@@ -84,11 +84,14 @@ export default function ArchitectHero() {
             <ArrowRight className="w-4 h-4" />
           </a>
           <a
-            href="#contact"
+            href="https://calendly.com/derrickodiwuor/30min"
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl border border-grey-300 dark:border-warm-700 text-grey-700 dark:text-grey-300 font-medium hover:bg-grey-100 dark:hover:bg-warm-800 transition-all duration-200"
           >
             <Calendar className="w-4 h-4" />
             Schedule a Consultation
+            <ArrowRight className="w-4 h-4" />
           </a>
         </motion.div>
 
