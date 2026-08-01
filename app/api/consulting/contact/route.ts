@@ -5,13 +5,16 @@ import nodemailer from "nodemailer";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// --- Lazy KV init (supports both Vercel KV env var naming conventions) ---
+// --- Lazy KV init (token extracted from STORAGE_REDIS_URL password field) ---
 let _kv: ReturnType<typeof createClient> | null = null;
 function getKv() {
-  const url = process.env.KV_REST_API_URL || process.env.STORAGE_REDIS_URL;
-  const token = process.env.KV_REST_API_TOKEN || process.env.STORAGE_REDIS_TOKEN;
-  if (!url || !token) return null;
-  if (!_kv) _kv = createClient({ url, token });
+  const redisUrl = process.env.STORAGE_REDIS_URL;
+  if (!redisUrl) return null;
+  if (!_kv) {
+    let token = "";
+    try { token = new URL(redisUrl).password ?? ""; } catch { /* use empty token */ }
+    _kv = createClient({ url: redisUrl, token });
+  }
   return _kv;
 }
 
