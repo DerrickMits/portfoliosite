@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { X, Send, Loader2, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { formatContextPreamble } from "@/components/architect/pageContext";
 
 /**
  * Embedded assistant chat panel for the portfolio. Streams from the deployed
@@ -20,6 +22,7 @@ interface Msg {
 }
 
 export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
+  const pathname = usePathname();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -29,11 +32,19 @@ export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, busy]);
 
+  const contextPreamble = formatContextPreamble();
+
   const send = async (text?: string) => {
-    const content = (text ?? input).trim();
-    if (!content || busy) return;
-    const next: Msg[] = [...messages, { role: "user", content }];
-    setMessages([...next, { role: "assistant", content: "" }]);
+  const content = (text ?? input).trim();
+  if (!content || busy) return;
+
+  // Prepend page-context system message on first turn, then carry it along
+  const contextMsg: Msg = { role: "assistant", content: contextPreamble };
+  const history: Msg[] =
+    messages.length === 0 ? [contextMsg] : messages;
+
+  const next: Msg[] = [...history, { role: "user", content }];
+  setMessages([...next, { role: "assistant", content: "" }]);
     setInput("");
     setBusy(true);
 
