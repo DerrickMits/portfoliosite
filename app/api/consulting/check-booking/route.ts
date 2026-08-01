@@ -5,11 +5,11 @@ import nodemailer from "nodemailer";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// --- Lazy KV init (only when env vars are present) ---
+// --- Lazy KV init (supports both Vercel KV env var naming conventions) ---
 let _kv: ReturnType<typeof createClient> | null = null;
 function getKv() {
-  const url = process.env.KV_REST_API_URL;
-  const token = process.env.KV_REST_API_TOKEN;
+  const url = process.env.KV_REST_API_URL || process.env.STORAGE_REDIS_URL;
+  const token = process.env.KV_REST_API_TOKEN || process.env.STORAGE_REDIS_TOKEN;
   if (!url || !token) return null;
   if (!_kv) _kv = createClient({ url, token });
   return _kv;
