@@ -1,25 +1,19 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@vercel/kv";
+import Redis from "ioredis";
 import nodemailer from "nodemailer";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// --- Lazy KV init (convert redis:// to https:// for Upstash client) ---
-let _kv: ReturnType<typeof createClient> | null = null;
-function getKv() {
-  const envUrl = process.env.STORAGE_REDIS_URL;
-  if (!envUrl) return null;
-  let redisUrl = envUrl;
-  if (redisUrl.startsWith("redis://")) {
-    redisUrl = "https://" + redisUrl.slice(8);
+// --- Lazy Redis init (ioredis handles redis:// URLs natively) ---
+let _redis: Redis | null = null;
+function getRedis(): Redis {
+  if (!_redis) {
+    const url = process.env.STORAGE_REDIS_URL;
+    if (!url) throw new Error("STORAGE_REDIS_URL not configured");
+    _redis = new Redis(url);
   }
-  if (!_kv) {
-    let token = "";
-    try { token = new URL(redisUrl).password ?? ""; } catch { /* use empty token */ }
-    _kv = createClient({ url: redisUrl, token });
-  }
-  return _kv;
+  return _redis;
 }
 
 const CALENDLY_TOKEN = process.env.CALENDLY_TOKEN ?? "";
@@ -50,10 +44,7 @@ async function checkCalendlyBooking(email: string): Promise<boolean> {
 async function sendFollowUpEmail(lead: LeadRecord) {
   const smtpUser = process.env.SMTP_USER;
   const smtpPass = process.env.SMTP_PASS;
-  if (!smtpUser || !smtpPass) {
-    console.log(`[SKIP SMTP] No SMTP — skipping follow-up for ${lead.email}`);
-    return;
-  }
+  if (!smtpUser || !smtpPass) return;
   const smtpFrom = process.env.SMTP_FROM || smtpUser;
   const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -80,23 +71,15 @@ export async function GET(_req: Request) {
     return NextResponse.json({ status: "error", message: "Unauthorized" }, { status: 401 });
   }
 
-  const kv = getKv();
-  if (!kv) {
-    return NextResponse.json({ status: "error", message: "STORAGE_REDIS_URL not configured" }, { status: 500 });
-  }
-
-  if (!CALENDLY_TOKEN) {
-    return NextResponse.json({ status: "error", message: "CALENDLY_TOKEN not configured" }, { status: 500 });
-  }
-
+  const redis = getRedis();
   const now = Date.now();
   let checked = 0;
   let followedUp = 0;
 
   try {
-    const keys = await kv.keys("consulting:lead:*");
+    const keys = await redis.keys("consulting:lead:*");
     for (const key of keys) {
-      const raw = await kv.get(key);
+      const raw = await redis.get(key);
       if (!raw || typeof raw !== "string") continue;
       let lead: LeadRecord;
       try { lead = JSON.parse(raw); } catch { continue; }
@@ -109,7 +92,7 @@ export async function GET(_req: Request) {
       if (!booked) {
         try { await sendFollowUpEmail(lead); followedUp++; } catch { /* skip */ }
       }
-      await kv.hset(key, { checked: "1", booked: booked ? "1" : "0" });
+      await redis.hset(key, { checked: "1", booked: booked ? "1" : "0" });
     }
   } catch (err) {
     console.error("check-booking error:", err);

@@ -1,25 +1,19 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@vercel/kv";
+import Redis from "ioredis";
 import nodemailer from "nodemailer";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// --- Lazy KV init (convert redis:// to https:// for Upstash client) ---
-let _kv: ReturnType<typeof createClient> | null = null;
-function getKv() {
-  const envUrl = process.env.STORAGE_REDIS_URL;
-  if (!envUrl) return null;
-  let redisUrl = envUrl;
-  if (redisUrl.startsWith("redis://")) {
-    redisUrl = "https://" + redisUrl.slice(8);
+// Singleton Redis client (ioredis handles redis:// natively)
+let _redis: Redis | null = null;
+function getRedis(): Redis {
+  if (!_redis) {
+    const url = process.env.STORAGE_REDIS_URL;
+    if (!url) throw new Error("STORAGE_REDIS_URL not configured");
+    _redis = new Redis(url);
   }
-  if (!_kv) {
-    let token = "";
-    try { token = new URL(redisUrl).password ?? ""; } catch { /* use empty token */ }
-    _kv = createClient({ url: redisUrl, token });
-  }
-  return _kv;
+  return _redis;
 }
 
 const CALENDLY_URL = "https://calendly.com/derrickodiwuor/30min";
@@ -76,18 +70,16 @@ export async function POST(request: Request) {
     console.error("Failed to send notification email:", err);
   }
 
-  const kv = getKv();
-  if (kv) {
-    try {
-      const key = `consulting:lead:${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      await kv.zadd("consulting:leads:by:time", { score: Date.now(), member: key });
-      await kv.set(key, JSON.stringify({
-        name: trimmedName, email: trimmedEmail, project_details: trimmedDetails,
-        submittedAt: timestamp, checked: false, booked: false,
-      }));
-    } catch (err) {
-      console.error("Failed to save lead to KV:", err);
-    }
+  const redis = getRedis();
+  try {
+    const key = `consulting:lead:${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    await redis.zadd("consulting:leads:by:time", Date.now(), key);
+    await redis.set(key, JSON.stringify({
+      name: trimmedName, email: trimmedEmail, project_details: trimmedDetails,
+      submittedAt: timestamp, checked: false, booked: false,
+    }));
+  } catch (err) {
+    console.error("Failed to save lead to Redis:", err);
   }
 
   const calendlyUrl = new URL(CALENDLY_URL);
