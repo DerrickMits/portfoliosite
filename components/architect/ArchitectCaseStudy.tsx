@@ -5,10 +5,10 @@ import { ArrowRight, Brain, Send, RefreshCw } from "lucide-react";
 
 const codeLines = [
   '{',
-  '  "intent": "high_priority",',
-  '  "sentiment": "positive",',
-  '  "routing": "sales_executive_1",',
-  '  "status": "success"',
+  '  "stage": "hot_lead_routed",',
+  '  "workflow": "gohighlevel_4stage",',
+  '  "handoffs": 0,',
+  '  "status": "converted"',
   '}',
 ];
 
@@ -32,7 +32,7 @@ export default function ArchitectCaseStudy() {
                 Case Study · Efficiency Redefined
               </p>
               <h2 className="text-3xl md:text-4xl font-display font-bold text-warm-900 dark:text-cream leading-tight max-w-xl">
-                Reducing manual sales operations by 40%.
+                Scaling lead response and routing with zero manual friction.
               </h2>
             </motion.div>
 
@@ -48,9 +48,9 @@ export default function ArchitectCaseStudy() {
                   The Challenge
                 </h4>
                 <p className="text-grey-700 dark:text-grey-300 text-base leading-relaxed">
-                  A rapidly scaling SaaS provider struggled with fragmented lead
-                  data, manual entry errors in HubSpot, and a three-day delay in
-                  prospect follow-ups due to resource bottlenecks.
+                  A growing pipeline suffered from inefficient handoffs, delayed
+                  lead routing, and inconsistent lead-state tracking across
+                  multiple sales and booking stages.
                 </p>
               </div>
               <div>
@@ -58,9 +58,10 @@ export default function ArchitectCaseStudy() {
                   The Strategy
                 </h4>
                 <p className="text-grey-700 dark:text-grey-300 text-base leading-relaxed">
-                  Architected a node-based automation layer in n8n that connected
-                  Typeform, OpenAI (for intent analysis), and HubSpot — with
-                  custom webhook triggers syncing data in real time.
+                  Engineered an automated 4-stage GoHighLevel engine combining
+                  custom workflow logic, conditional routing, and business-hour
+                  constraints to seamlessly sync leads from nurture to
+                  conversion.
                 </p>
               </div>
             </motion.div>
@@ -74,10 +75,10 @@ export default function ArchitectCaseStudy() {
               className="p-6 rounded-xl border-l-2 border-accent dark:border-cream bg-white dark:bg-warm-800 border border-grey-200 dark:border-warm-700"
             >
               <div className="text-4xl md:text-5xl font-display font-bold text-warm-900 dark:text-cream">
-                40%
+                0%
               </div>
               <p className="text-grey-700 dark:text-grey-300 text-sm mt-1">
-                Reduction in manual data entry within the first 60 days.
+                Manual pipeline handoffs needed across all sales stages.
               </p>
             </motion.div>
           </div>
