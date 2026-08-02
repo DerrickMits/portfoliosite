@@ -17,7 +17,15 @@ export default function AIAssistantWidget() {
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? "Close AI Assistant" : "Open AI Assistant"}
-        className="fixed bottom-6 right-6 z-30 group flex items-center gap-2 h-12 pl-3 pr-4 rounded-full bg-gradient-to-br from-amber-300 to-violet-300 text-warm-900 shadow-[0_12px_30px_-8px_rgba(0,0,0,0.4)] hover:shadow-[0_16px_36px_-10px_rgba(0,0,0,0.5)] transition-shadow will-change-auto"
+        // Lock the button to a single render position. CSS containment
+        // isolates layout/paint so nothing outside this button can
+        // affect where it sits on screen (mobile repaint jitter fix).
+        style={{
+          contain: "layout paint style",
+          transitionProperty: "box-shadow, background-image",
+          transform: "translateZ(0)",
+        }}
+        className="fixed bottom-6 right-6 z-30 group flex items-center gap-2 h-12 pl-3 pr-4 rounded-full bg-gradient-to-br from-amber-300 to-violet-300 text-warm-900 shadow-[0_12px_30px_-8px_rgba(0,0,0,0.4)] hover:shadow-[0_16px_36px_-10px_rgba(0,0,0,0.5)]"
       >
         <span className="w-7 h-7 rounded-full bg-white/30 grid place-items-center">
           {open ? <X className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}

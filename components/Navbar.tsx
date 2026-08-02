@@ -70,7 +70,17 @@ export default function Navbar() {
 
   useEffect(() => {
     setMounted(true);
-    const handleScroll = () => setScrolled(window.scrollY > 20);
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setScrolled(window.scrollY > 20);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+    handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -100,10 +110,13 @@ export default function Navbar() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-40 transition-colors duration-200 ${
+        style={{
+          transition: "background-color 0.2s linear, border-color 0.2s linear, box-shadow 0.2s linear",
+        }}
+        className={`fixed top-0 left-0 right-0 z-40 will-change-auto ${
           scrolled
             ? "bg-cream/95 md:bg-cream/75 dark:bg-deep/95 md:dark:bg-deep/75 md:backdrop-blur-md border-b border-warm-200/60 dark:border-warm-800/60 shadow-sm"
-            : "bg-transparent"
+            : "bg-transparent border-b border-transparent"
         }`}
       >
         <nav className="max-w-6xl mx-auto px-6 md:px-8 h-16 flex items-center justify-between">
@@ -197,14 +210,15 @@ export default function Navbar() {
           )}
 
           {/* AI Assistant CTA + Theme Toggle + Mobile Menu */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3" style={{ contain: "layout style" }}>
             {/* AI Assistant pill — always visible */}
             <a
               href={AI_ASSISTANT_URL}
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`${AI_ASSISTANT_LABEL} (opens in a new tab)`}
-              className="hidden md:inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold text-warm-900 dark:text-warm-50 bg-gradient-to-r from-amber-300 to-violet-300 hover:from-amber-200 hover:to-violet-200 shadow-sm hover:shadow transition-all duration-200 hover:-translate-y-0.5"
+              className="hidden md:inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold text-warm-900 dark:text-warm-50 bg-gradient-to-r from-amber-300 to-violet-300 hover:from-amber-200 hover:to-violet-200 shadow-sm hover:shadow duration-200"
+              style={{ transitionProperty: "background-image, box-shadow, color" }}
             >
               <Sparkles className="w-4 h-4" />
               {AI_ASSISTANT_LABEL}

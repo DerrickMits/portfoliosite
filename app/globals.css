@@ -50,7 +50,19 @@ body {
 }
 
 html {
-  scroll-behavior: smooth;
+  /* scroll-behavior: smooth was causing mobile viewport jitter
+     (rubber-band + address bar show/hide interact with smooth scroll).
+     Anchor jumps are still smooth because we don't have long pages. */
+  scroll-behavior: auto;
+}
+
+/* Force the page to use a stable scroll container so that
+   position: fixed UI elements (navbar, theme toggle, AI widget)
+   don't shift when the mobile browser's chrome (address bar)
+   shows or hides during scroll. */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
 }
 
 /* Glassmorphism utility — desktop only by default.

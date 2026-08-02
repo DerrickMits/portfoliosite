@@ -24,7 +24,12 @@ export default function ToggleTheme() {
   const isDark = mounted ? resolvedTheme === "dark" : true;
 
   return (
-    <div className="group inline-flex items-center gap-2">
+    <div
+      className="group inline-flex items-center gap-2"
+      // Lock this group's paint/layout so theme changes / parent
+      // re-renders can't cause the toggle to visually jitter on mobile.
+      style={{ contain: "layout paint style" }}
+    >
       <button
         id={`${id}-light`}
         type="button"
@@ -32,9 +37,10 @@ export default function ToggleTheme() {
         aria-controls={id}
         onClick={() => setTheme("light")}
         className={cn(
-          "cursor-pointer text-sm font-medium transition-opacity",
+          "cursor-pointer text-sm font-medium",
           isDark ? "text-foreground/40 hover:text-foreground/70" : "text-foreground",
         )}
+        style={{ transitionProperty: "color, opacity" }}
       >
         <SunIcon className="size-4" aria-hidden="true" />
       </button>
@@ -46,6 +52,7 @@ export default function ToggleTheme() {
         aria-labelledby={`${id}-light ${id}-dark`}
         aria-label="Toggle between dark and light mode"
         className="data-[state=checked]:bg-warm-900 data-[state=unchecked]:bg-warm-200"
+        style={{ transitionProperty: "background-color" }}
       />
 
       <button
@@ -55,9 +62,10 @@ export default function ToggleTheme() {
         aria-controls={id}
         onClick={() => setTheme("dark")}
         className={cn(
-          "cursor-pointer text-sm font-medium transition-opacity",
+          "cursor-pointer text-sm font-medium",
           isDark ? "text-foreground" : "text-foreground/40 hover:text-foreground/70",
         )}
+        style={{ transitionProperty: "color, opacity" }}
       >
         <MoonIcon className="size-4" aria-hidden="true" />
       </button>
