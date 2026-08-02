@@ -5,7 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
-import { Sun, Moon, Menu, X, Sparkles, ChevronDown, ArrowUpRight } from "lucide-react";
+import { Menu, X, Sparkles, ChevronDown, ArrowUpRight } from "lucide-react";
+import ToggleTheme from "@/components/ui/toggle-theme";
 
 type NavLink = {
   href: string;
@@ -92,7 +93,6 @@ export default function Navbar() {
     };
   }, [contentOpen]);
 
-  const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
   const closeMobile = () => setMobileOpen(false);
 
   const isConsulting = pathname === "/architect";
@@ -212,17 +212,7 @@ export default function Navbar() {
             </a>
 
             {mounted && (
-              <button
-                onClick={toggleTheme}
-                className="w-10 h-10 rounded-xl bg-warm-100 dark:bg-warm-800 flex items-center justify-center hover:bg-warm-200 dark:hover:bg-warm-700 transition-colors"
-                aria-label="Toggle theme"
-              >
-                {theme === "dark" ? (
-                  <Sun className="w-5 h-5 text-warm-300" />
-                ) : (
-                  <Moon className="w-5 h-5 text-warm-700" />
-                )}
-              </button>
+              <ToggleTheme />
             )}
 
             {/* Mobile hamburger */}
