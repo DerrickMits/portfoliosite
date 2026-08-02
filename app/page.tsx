@@ -9,6 +9,7 @@ import BlogSection from "@/components/BlogSection";
 import BeyondWorkSection from "@/components/BeyondWorkSection";
 import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
+import { ROICalculator } from "@/components/ROICalculator";
 
 export default function Home() {
   const posts = getAllPosts();
@@ -16,6 +17,7 @@ export default function Home() {
   return (
     <>
       <HeroSection />
+      <ROICalculator />
       <CertificationsSection />
       <ExperienceSection />
       <RecommendationsSection />
