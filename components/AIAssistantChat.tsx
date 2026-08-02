@@ -104,7 +104,7 @@ export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
       <button
         aria-label="Close assistant"
         onClick={onClose}
-        className="absolute inset-0 bg-deep/40 backdrop-blur-[2px] pointer-events-auto"
+        className="absolute inset-0 bg-deep/50 md:backdrop-blur-[2px] pointer-events-auto"
       />
       <aside className="relative pointer-events-auto w-full max-w-md h-full bg-cream dark:bg-warm-900 border-l border-warm-200 dark:border-warm-800 shadow-2xl flex flex-col animate-slide-in-right">
         <header className="flex items-center justify-between px-5 h-16 border-b border-warm-200 dark:border-warm-800">

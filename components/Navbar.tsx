@@ -100,9 +100,9 @@ export default function Navbar() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-40 transition-colors duration-200 ${
           scrolled
-            ? "glass border-b border-warm-200/60 dark:border-warm-800/60 shadow-sm"
+            ? "bg-cream/95 md:bg-cream/75 dark:bg-deep/95 md:dark:bg-deep/75 md:backdrop-blur-md border-b border-warm-200/60 dark:border-warm-800/60 shadow-sm"
             : "bg-transparent"
         }`}
       >
@@ -242,8 +242,8 @@ export default function Navbar() {
             className="fixed inset-0 z-30 md:hidden"
             onClick={closeMobile}
           >
-            {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+            {/* Backdrop — no backdrop-blur on mobile (causes repaint jitter) */}
+            <div className="absolute inset-0 bg-black/50 md:backdrop-blur-sm" />
 
             {/* Panel */}
             <motion.div

@@ -53,15 +53,28 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Glassmorphism utility */
+/* Glassmorphism utility — desktop only by default.
+   Mobile uses solid bg via className to avoid backdrop-filter repaint jitter. */
 .glass {
   background: rgba(253, 251, 247, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+}
+
+@media (min-width: 768px) {
+  .glass {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
 }
 
 .dark .glass {
   background: rgba(12, 10, 9, 0.75);
+}
+
+/* Prevent transitions on theme change to eliminate theme-switch flicker
+   (next-themes disables its own transitions; this targets the rest). */
+html.theme-changing,
+html.theme-changing * {
+  transition: none !important;
 }
 
 /* Section separator */
