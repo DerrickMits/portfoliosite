@@ -83,8 +83,10 @@ export async function GET(_req: Request) {
       if (!raw || typeof raw !== "string") continue;
       let lead: LeadRecord;
       try { lead = JSON.parse(raw); } catch { continue; }
+      // Skip already-processed leads (idempotency guard)
+      if (lead.checked) continue;
+
       // Only process leads between 15 min and 24 hours old
-      // (prevents re-processing old/legacy leads stuck at checked:false)
       const ageMs = now - new Date(lead.submittedAt).getTime();
       if (ageMs < FIFTEEN_MIN) continue;
       if (ageMs > 24 * 60 * 60 * 1000) continue;
