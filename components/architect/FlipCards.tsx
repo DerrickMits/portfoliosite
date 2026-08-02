@@ -101,7 +101,7 @@ function FlipCard({ card }: { card: CardData }) {
 
   return (
     <div
-      className="group relative h-[440px] [perspective:1000px]"
+      className="group relative h-[560px] md:h-[520px] [perspective:1000px]"
       style={{ perspective: "1000px" }}
     >
       <div
