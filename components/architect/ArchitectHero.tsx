@@ -78,7 +78,7 @@ export default function ArchitectHero() {
           className="absolute top-1/3 right-1/4 w-[460px] h-[460px] bg-grey-200/40 dark:bg-warm-800/20 rounded-full blur-3xl pointer-events-none"
         />
 
-      <div className="relative z-10 max-w-6xl mx-auto px-6 md:px-8 flex flex-col items-start gap-8">
+      <div className="relative z-10 max-w-5xl mx-auto px-6 md:px-8 flex flex-col items-center gap-8 text-center">
         {/* Display headline */}
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
@@ -108,7 +108,7 @@ export default function ArchitectHero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.18 }}
-          className="flex flex-col sm:flex-row gap-4 mt-2 w-full sm:w-auto"
+          className="flex flex-col sm:flex-row gap-4 mt-2 w-full sm:w-auto items-center justify-center"
         >
           <FlowButton
             text="View Case Studies"
@@ -133,14 +133,14 @@ export default function ArchitectHero() {
           className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-6 w-full border-t border-grey-200 dark:border-warm-800 pt-10"
         >
           {metrics.map((metric) => (
-            <div key={metric.label} className="flex flex-col gap-1">
+            <div key={metric.label} className="flex flex-col items-center gap-1">
               <span className="text-3xl md:text-4xl font-display font-bold text-warm-900 dark:text-cream">
                 {metric.value}
               </span>
               <span className="text-sm font-semibold text-grey-700 dark:text-grey-300">
                 {metric.label}
               </span>
-              <span className="text-sm text-grey-500 dark:text-warm-500">
+              <span className="text-sm text-grey-500 dark:text-warm-500 text-center max-w-xs">
                 {metric.detail}
               </span>
             </div>
