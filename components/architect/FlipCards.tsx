@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  RefreshCw,
   TrendingDown,
   TrendingUp,
   ShieldCheck,
@@ -102,7 +101,7 @@ function FlipCard({ card }: { card: CardData }) {
 
   return (
     <div
-      className="group relative h-[460px] [perspective:1000px]"
+      className="group relative h-[440px] [perspective:1000px]"
       style={{ perspective: "1000px" }}
     >
       <div
@@ -163,17 +162,11 @@ function FlipCard({ card }: { card: CardData }) {
               {card.front.metric}
             </p>
           </div>
-
-          {/* Flip hint */}
-          <div className="mt-4 flex items-center justify-center gap-1.5 text-[11px] font-medium text-[#8C7A6B] dark:text-grey-500 uppercase tracking-[0.15em]">
-            <RefreshCw className="w-3 h-3" />
-            Click card to flip ↺
-          </div>
         </div>
 
         {/* ── BACK — THE SYSTEM BUILT ── */}
         <div
-          className="absolute inset-0 flex flex-col rounded-2xl bg-[#F4F3EF] dark:bg-warm-800 border border-[#E5E2D9] dark:border-warm-700 p-7 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)]"
+          className="absolute inset-0 flex flex-col rounded-2xl bg-[#F4F3EF] dark:bg-warm-800 border border-[#E5E2D9] dark:border-warm-700 p-7 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] overflow-hidden"
           style={{
             backfaceVisibility: "hidden",
             WebkitBackfaceVisibility: "hidden",
@@ -216,28 +209,22 @@ function FlipCard({ card }: { card: CardData }) {
             ))}
           </ul>
 
-          {/* Outcome badges */}
-          <div className="mt-5 flex flex-wrap gap-2">
-            {card.back.outcomes.map((outcome, i) => (
-              <span
-                key={i}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#7A8B7B]/10 dark:bg-[#7A8B7B]/15 border border-[#7A8B7B]/25 dark:border-[#7A8B7B]/40 text-[#7A8B7B] dark:text-[#9CB09D] text-xs font-semibold"
-              >
-                {outcome.startsWith("-") ? (
-                  <TrendingDown className="w-3 h-3" />
-                ) : (
-                  <TrendingUp className="w-3 h-3" />
-                )}
-                {outcome}
-              </span>
-            ))}
-          </div>
-
-          {/* Flip hint */}
-          <div className="mt-4 flex items-center justify-center gap-1.5 text-[11px] font-medium text-[#8C7A6B] dark:text-grey-500 uppercase tracking-[0.15em]">
-            <RefreshCw className="w-3 h-3" />
-            Click card to flip ↺
-          </div>
+{/* Outcome badges */}
+<div className="mt-5 flex flex-wrap gap-1.5">
+  {card.back.outcomes.map((outcome, i) => (
+    <span
+      key={i}
+      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#7A8B7B]/10 dark:bg-[#7A8B7B]/15 border border-[#7A8B7B]/25 dark:border-[#7A8B7B]/40 text-[#7A8B7B] dark:text-[#9CB09D] text-[11px] font-semibold leading-snug"
+    >
+      {outcome.startsWith("-") ? (
+        <TrendingDown className="w-3 h-3 shrink-0" />
+      ) : (
+        <TrendingUp className="w-3 h-3 shrink-0" />
+      )}
+      <span>{outcome}</span>
+    </span>
+  ))}
+</div>
         </div>
       </div>
     </div>
@@ -269,7 +256,7 @@ export default function FlipCards() {
         </motion.div>
 
         {/* Cards grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           {CARDS.map((card, i) => (
             <motion.div
               key={card.id}

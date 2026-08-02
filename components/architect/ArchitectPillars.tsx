@@ -49,21 +49,21 @@ export default function ArchitectPillars() {
       className="relative py-20 md:py-28 bg-white dark:bg-warm-900"
     >
       <div className="z-10 max-w-6xl mx-auto px-6 md:px-8">
-        {/* Section header */}
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="max-w-2xl mb-14"
-        >
-          <p className="text-xs uppercase tracking-[0.22em] font-semibold text-grey-500 dark:text-grey-500 mb-3">
-            Core Pillars
-          </p>
-          <h2 className="text-3xl md:text-4xl font-display font-bold text-warm-900 dark:text-cream leading-tight">
-            Three disciplines, one operating system for execution.
-          </h2>
-        </motion.div>
+{/* Section header */}
+<motion.div
+  initial={{ opacity: 0, y: 24 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  viewport={{ once: true }}
+  transition={{ duration: 0.5 }}
+  className="max-w-2xl mx-auto mb-14 text-center"
+>
+  <p className="text-xs uppercase tracking-[0.22em] font-semibold text-grey-500 dark:text-grey-500 mb-3">
+    Core Pillars
+  </p>
+  <h2 className="text-3xl md:text-4xl font-display font-bold text-warm-900 dark:text-cream leading-tight">
+    Three disciplines, one operating system for execution.
+  </h2>
+</motion.div>
 
         {/* Pillar grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
