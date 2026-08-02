@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight, Calendar } from "lucide-react";
+import { ArrowRight, Calendar, Leaf } from "lucide-react";
 import { FlowButton } from "@/components/ui/flow-button";
 
 const metrics = [
@@ -24,28 +24,61 @@ const metrics = [
 
 export default function ArchitectHero() {
   return (
-    <section
-      id="hero"
-      className="relative py-24 md:py-32 bg-cream dark:bg-deep overflow-hidden"
-    >
-      {/* Atmospheric backdrop — restrained, editorial */}
-      <div
-        aria-hidden
-        className="absolute top-1/3 right-1/4 w-[460px] h-[460px] bg-grey-200/40 dark:bg-warm-800/20 rounded-full blur-3xl pointer-events-none"
-      />
+    <>
+      {/* ── Consulting page title — matches the Ledger/Resources header pattern ── */}
+      <section className="relative overflow-hidden pt-28 sm:pt-32 pb-8 sm:pb-10 bg-cream dark:bg-deep">
+        <div
+          aria-hidden
+          className="absolute top-1/4 right-1/4 w-[420px] h-[420px] bg-grey-200/40 dark:bg-warm-800/20 rounded-full blur-3xl pointer-events-none"
+        />
+        <div className="relative max-w-5xl mx-auto px-6 sm:px-8 text-center">
+          {/* Eyebrow chip with leaf icon */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white dark:bg-warm-900 border border-grey-200 dark:border-warm-800 text-xs font-medium text-warm-600 dark:text-warm-400 mb-7"
+          >
+            <Leaf className="w-3.5 h-3.5 text-[#7A8B7B] dark:text-warm-300" strokeWidth={2} />
+            Operations & AI Automation Architecture
+          </motion.div>
+
+          {/* Page title */}
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.06 }}
+            className="font-display text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight text-warm-900 dark:text-warm-100 leading-[1.05]"
+          >
+            Consulting
+          </motion.h1>
+
+          {/* Subtitle */}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.12 }}
+            className="mx-auto mt-6 max-w-2xl text-lg sm:text-xl leading-relaxed text-warm-600 dark:text-warm-400"
+          >
+            Executive operations, CRM architecture, and AI automation systems
+            engineered to help cross-functional teams scale without the friction
+            of manual overhead.
+          </motion.p>
+        </div>
+      </section>
+
+      {/* ── Main hero (existing) ── */}
+      <section
+        id="hero"
+        className="relative py-20 md:py-28 bg-cream dark:bg-deep overflow-hidden"
+      >
+        {/* Atmospheric backdrop — restrained, editorial */}
+        <div
+          aria-hidden
+          className="absolute top-1/3 right-1/4 w-[460px] h-[460px] bg-grey-200/40 dark:bg-warm-800/20 rounded-full blur-3xl pointer-events-none"
+        />
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 md:px-8 flex flex-col items-start gap-8">
-        {/* Eyebrow chip */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white dark:bg-warm-900 border border-grey-200 dark:border-warm-700 text-xs font-semibold uppercase tracking-[0.18em] text-grey-700 dark:text-grey-300"
-        >
-          <span className="w-1.5 h-1.5 rounded-full bg-grey-500 dark:bg-grey-500" />
-          Operations & AI Automation Architecture
-        </motion.div>
-
         {/* Display headline */}
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
@@ -115,5 +148,6 @@ export default function ArchitectHero() {
         </motion.div>
       </div>
     </section>
+    </>
   );
 }
