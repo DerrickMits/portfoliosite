@@ -93,8 +93,8 @@ export default function ArchitectCaseStudy() {
           >
             <div className="relative bg-white dark:bg-warm-800 border border-grey-200 dark:border-warm-700 rounded-xl p-8 premium-shadow">
               <div className="flex flex-col gap-6">
-                {/* Top row — capture → process */}
-                <div className="flex items-center justify-between gap-3 p-4 bg-cream dark:bg-warm-900 rounded-lg border border-grey-200 dark:border-warm-700">
+{/* Top row — capture → process */}
+<div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-3 p-4 bg-cream dark:bg-warm-900 rounded-lg border border-grey-200 dark:border-warm-700 md:justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-lg bg-white dark:bg-warm-700 border border-grey-200 dark:border-warm-600 flex items-center justify-center">
                       <Send className="w-4 h-4 text-grey-700 dark:text-grey-300" />
