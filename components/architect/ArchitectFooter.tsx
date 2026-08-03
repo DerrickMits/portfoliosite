@@ -11,6 +11,15 @@ const links = [
 ];
 
 export default function ArchitectFooter() {
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    const id = href.replace("#", "");
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   return (
     <footer className="bg-cream dark:bg-deep border-t border-grey-200 dark:border-warm-800">
       <div className="max-w-6xl mx-auto px-6 md:px-8 py-10 flex flex-col md:flex-row justify-between items-center gap-6">
@@ -33,11 +42,12 @@ export default function ArchitectFooter() {
           className="flex gap-6 order-2 md:order-3 text-sm text-grey-700 dark:text-grey-300"
         >
           {links.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="hover:text-accent dark:hover:text-cream transition-colors"
-            >
+      <a
+        key={link.href}
+        href={link.href}
+        onClick={(e) => handleClick(e, link.href)}
+        className="hover:text-accent dark:hover:text-cream transition-colors"
+      >
               {link.label}
             </a>
           ))}
