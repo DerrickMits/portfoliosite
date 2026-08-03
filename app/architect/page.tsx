@@ -3,6 +3,7 @@ import ArchitectHero from "@/components/architect/ArchitectHero";
 import ArchitectPillars from "@/components/architect/ArchitectPillars";
 import ArchitectCaseStudy from "@/components/architect/ArchitectCaseStudy";
 import FlipCards from "@/components/architect/FlipCards";
+import { GrowthPlans } from "@/components/ui/growth-plans";
 import ArchitectTicker from "@/components/architect/ArchitectTicker";
 import ArchitectContact from "@/components/architect/ArchitectContact";
 import ArchitectFooter from "@/components/architect/ArchitectFooter";
@@ -20,6 +21,7 @@ export default function ArchitectPage() {
       <ArchitectPillars />
       <ArchitectCaseStudy />
       <FlipCards />
+      <GrowthPlans />
       <ArchitectTicker />
       <ArchitectContact />
       <ArchitectFooter />

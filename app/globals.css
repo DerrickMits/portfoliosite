@@ -83,10 +83,19 @@ html, body {
 }
 
 /* Prevent transitions on theme change to eliminate theme-switch flicker
-   (next-themes disables its own transitions; this targets the rest). */
+(next-themes disables its own transitions; this targets the rest). */
 html.theme-changing,
 html.theme-changing * {
   transition: none !important;
+}
+
+/* FlowButton dark-mode overrides for the consulting page */
+.dark .architect-section,
+.dark [id="hero"],
+.dark [id="contact"],
+.dark [id="growth-plans"] {
+  --flow-button-border: rgba(255, 255, 255, 0.35);
+  --flow-button-color: #ffffff;
 }
 
 /* Section separator */

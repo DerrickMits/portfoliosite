@@ -104,26 +104,28 @@ export default function ArchitectHero() {
         </motion.p>
 
         {/* CTAs */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.18 }}
-          className="flex flex-col sm:flex-row gap-4 mt-2 w-full sm:w-auto items-center justify-center"
-        >
-          <FlowButton
-            text="View Case Studies"
-            onClick={() => {
-              const el = document.getElementById("case-studies");
-              if (el) el.scrollIntoView({ behavior: "smooth" });
-            }}
-          />
-          <FlowButton
-            text="Schedule a Consultation"
-            href="https://calendly.com/derrickodiwuor/30min"
-            target="_blank"
-            rel="noopener noreferrer"
-          />
-        </motion.div>
+<motion.div
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.6, delay: 0.18 }}
+  className="flex flex-col sm:flex-row gap-4 mt-2 w-full sm:w-auto items-center justify-center"
+>
+  <FlowButton
+    noRipple
+    text="View Case Studies"
+    onClick={() => {
+      const el = document.getElementById("case-studies");
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    }}
+  />
+  <FlowButton
+    noRipple
+    text="Schedule a Consultation"
+    href="https://calendly.com/derrickodiwuor/30min"
+    target="_blank"
+    rel="noopener noreferrer"
+  />
+</motion.div>
 
         {/* Metrics strip */}
         <motion.div
