@@ -233,7 +233,7 @@ function FlipCard({ card }: { card: CardData }) {
 
 export default function FlipCards() {
   return (
-    <section className="relative py-20 md:py-28 bg-[#FAF8F5] dark:bg-deep">
+    <section id="problem-solution" className="relative py-20 md:py-28 bg-[#FAF8F5] dark:bg-deep">
       <div className="max-w-6xl mx-auto px-6 md:px-8">
         {/* Section header */}
         <motion.div

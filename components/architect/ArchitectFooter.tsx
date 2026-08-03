@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 const links = [
   { href: "#services", label: "Services" },
   { href: "#case-studies", label: "Case Studies" },
+  { href: "#problem-solution", label: "Problem & Solution" },
   { href: "#stack", label: "Tech Stack" },
   { href: "#contact", label: "Contact" },
 ];
@@ -23,10 +24,9 @@ export default function ArchitectFooter() {
           Derrick Odiwuor
         </motion.div>
 
-        <p className="text-sm text-grey-500 dark:text-warm-500 order-3 md:order-2">
-          © {new Date().getFullYear()} Operations & AI Automation Architect.
-          All rights reserved.
-        </p>
+<p className="text-sm text-grey-500 dark:text-warm-500 order-3 md:order-2 text-center">
+  © {new Date().getFullYear()} Consulting. All rights reserved.
+</p>
 
         <nav
           aria-label="Footer"
