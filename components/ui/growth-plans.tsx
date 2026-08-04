@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Check, Clock, Sparkles } from "lucide-react";
 import { FlowButton } from "@/components/ui/flow-button";
+import { IntakeForm } from "@/components/ui/intake-form";
 
 const SERVICE_OFFERING = {
   name: "Complete System & CRM Setup Sprint",
@@ -36,8 +38,13 @@ const SERVICE_OFFERING = {
 };
 
 export function GrowthPlans() {
+  const [showIntake, setShowIntake] = useState(false);
+
   return (
-    <section id="growth-plans" className="relative py-20 md:py-28 bg-[#FAF8F5] dark:bg-deep">
+    <section
+      id="growth-plans"
+      className="relative py-20 md:py-28 bg-[#FAF8F5] dark:bg-deep"
+    >
       <div className="max-w-4xl mx-auto px-6 md:px-8 text-center">
         {/* Header */}
         <motion.div
@@ -66,67 +73,71 @@ export function GrowthPlans() {
           transition={{ duration: 0.55 }}
           className="max-w-2xl mx-auto bg-[#F4F3EE] dark:bg-warm-800 border border-[#E5E3DC] dark:border-warm-700 rounded-2xl p-8 sm:p-12 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.25)] text-left relative overflow-hidden"
         >
-          {/* Price & Duration */}
-          <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4 pb-8 mb-8 border-b border-[#E2DFD8] dark:border-warm-700">
-            <div>
-              <span className="text-xs uppercase font-semibold tracking-wider text-[#7E7A70] dark:text-grey-500 block mb-1">
-                Investment
-              </span>
-              <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-light text-[#55524B] dark:text-grey-400">
-                  $
-                </span>
-                <span className="text-6xl font-bold tracking-tight text-[#1A1A1A] dark:text-cream">
-                  {SERVICE_OFFERING.price}
-                </span>
-                <span className="text-sm font-medium text-[#7E7A70] dark:text-grey-500 ml-1">
-                  {SERVICE_OFFERING.duration}
-                </span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 text-xs font-medium text-[#666460] dark:text-grey-300 bg-[#EAE8E1] dark:bg-warm-900 px-3.5 py-2 rounded-lg border border-[#DDD9CF] dark:border-warm-700">
-              <Clock className="w-4 h-4 text-[#8C8275] dark:text-grey-500" />
-              <span>Dedicated 4-Hour Implementation</span>
-            </div>
-          </div>
-
-          {/* Included Features */}
-          <div className="space-y-6 mb-10">
-            <h4 className="text-xs uppercase font-semibold tracking-wider text-[#7E7A70] dark:text-grey-500">
-              What's Included
-            </h4>
-            <div className="grid gap-6">
-              {SERVICE_OFFERING.features.map((feature, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-start gap-4 group"
-                >
-                  <div className="mt-1 w-5 h-5 rounded-full bg-[#E5E2D9] dark:bg-warm-700 border border-[#D5D1C5] dark:border-warm-600 flex items-center justify-center shrink-0 text-[#4A4843] dark:text-grey-300">
-                    <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                  </div>
-                  <div>
-                    <h5 className="text-base font-semibold text-[#1A1A1A] dark:text-cream mb-1">
-                      {feature.title}
-                    </h5>
-                    <p className="text-sm text-[#666460] dark:text-grey-300 leading-relaxed">
-                      {feature.details}
-                    </p>
+          {showIntake ? (
+            <IntakeForm onComplete={() => setShowIntake(false)} />
+          ) : (
+            <>
+              {/* Price & Duration */}
+              <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4 pb-8 mb-8 border-b border-[#E2DFD8] dark:border-warm-700">
+                <div>
+                  <span className="text-xs uppercase font-semibold tracking-wider text-[#7E7A70] dark:text-grey-500 block mb-1">
+                    Investment
+                  </span>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-light text-[#55524B] dark:text-grey-400">
+                      $
+                    </span>
+                    <span className="text-6xl font-bold tracking-tight text-[#1A1A1A] dark:text-cream">
+                      {SERVICE_OFFERING.price}
+                    </span>
+                    <span className="text-sm font-medium text-[#7E7A70] dark:text-grey-500 ml-1">
+                      {SERVICE_OFFERING.duration}
+                    </span>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
+                <div className="flex items-center gap-2 text-xs font-medium text-[#666460] dark:text-grey-300 bg-[#EAE8E1] dark:bg-warm-900 px-3.5 py-2 rounded-lg border border-[#DDD9CF] dark:border-warm-700">
+                  <Clock className="w-4 h-4 text-[#8C8275] dark:text-grey-500" />
+                  <span>Dedicated 4-Hour Implementation</span>
+                </div>
+              </div>
 
-          {/* Action Button */}
-          <FlowButton
-            text="Book Setup Sprint"
-            href="https://calendly.com/derrickodiwuor/30min"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full !rounded-xl hover:!rounded-xl dark:!border-cream"
-            centered
-            noRipple
-          />
+              {/* Included Features */}
+              <div className="space-y-6 mb-10">
+                <h4 className="text-xs uppercase font-semibold tracking-wider text-[#7E7A70] dark:text-grey-500">
+                  What&apos;s Included
+                </h4>
+                <div className="grid gap-6">
+                  {SERVICE_OFFERING.features.map((feature, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-start gap-4 group"
+                    >
+                      <div className="mt-1 w-5 h-5 rounded-full bg-[#E5E2D9] dark:bg-warm-700 border border-[#D5D1C5] dark:border-warm-600 flex items-center justify-center shrink-0 text-[#4A4843] dark:text-grey-300">
+                        <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                      </div>
+                      <div>
+                        <h5 className="text-base font-semibold text-[#1A1A1A] dark:text-cream mb-1">
+                          {feature.title}
+                        </h5>
+                        <p className="text-sm text-[#666460] dark:text-grey-300 leading-relaxed">
+                          {feature.details}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <FlowButton
+                text="Book Setup Sprint"
+                onClick={() => setShowIntake(true)}
+                className="w-full !rounded-xl hover:!rounded-xl dark:!border-cream"
+                centered
+                noRipple
+              />
+            </>
+          )}
         </motion.div>
       </div>
     </section>
