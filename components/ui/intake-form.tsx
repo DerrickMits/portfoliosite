@@ -18,7 +18,7 @@ type FormData = {
 
 const TOOLS = ["Zapier", "n8n", "OpenAI", "Make.com"];
 
-const ZAPIER_URL = "https://hooks.zapier.com/hooks/catch/24869353/469gbmm/";
+const ZAPIER_URL = "/api/intake";
 const CALENDLY_URL = "https://calendly.com/derrickodiwuor/30min";
 
 const INITIAL_DATA: FormData = {
@@ -67,28 +67,24 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
     setSubmitting(true);
     setError("");
 
-    try {
-      const payload = {
-        ...data,
-        currentTools: data.currentTools.length > 0 ? data.currentTools : ["None"],
-        submittedAt: new Date().toISOString(),
-      };
+    const payload = {
+      ...data,
+      currentTools: data.currentTools.length > 0 ? data.currentTools : ["None"],
+      submittedAt: new Date().toISOString(),
+    };
 
-      const res = await fetch(ZAPIER_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+    // Fire-and-forget: submit to Zapier in the background.
+    // Always redirect to Calendly even if the webhook is offline / returns 5xx.
+    fetch("/api/intake", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }).catch((err) => {
+      console.warn("Intake webhook failed (non-blocking):", err);
+    });
 
-      if (!res.ok) throw new Error(`Zapier responded ${res.status}`);
-
-      const calendly = `${CALENDLY_URL}?name=${encodeURIComponent(data.name)}&email=${encodeURIComponent(data.email)}`;
-      window.location.replace(calendly);
-    } catch (err) {
-      console.error("Intake submit failed:", err);
-      setError("Something went wrong. Please try again or email me directly.");
-      setSubmitting(false);
-    }
+    const calendly = `${CALENDLY_URL}?name=${encodeURIComponent(data.name)}&email=${encodeURIComponent(data.email)}`;
+    window.location.replace(calendly);
   };
 
   if (submitted) {
