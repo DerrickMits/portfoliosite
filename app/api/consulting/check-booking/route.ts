@@ -59,22 +59,38 @@ async function sendFollowUpEmail(lead: LeadRecord) {
 }
 
 export async function GET(_req: Request) {
+  // --- Auth ---
   let searchParams: URLSearchParams;
   try {
-    const reqUrl = _req.url || "http://localhost/api/consulting/check-booking";
-    searchParams = new URL(reqUrl).searchParams;
+    searchParams = new URL(_req.url).searchParams;
   } catch {
     searchParams = new URLSearchParams();
   }
-
   if (CRON_SECRET && searchParams.get("secret") !== CRON_SECRET) {
     return NextResponse.json({ status: "error", message: "Unauthorized" }, { status: 401 });
   }
 
-  const redis = getRedis();
+  // --- Redis connection test ---
+  let connectionError: string | null = null;
+  let redis: Redis;
+  try {
+    redis = getRedis();
+    await redis.ping(); // verify connection is alive
+  } catch (err) {
+    connectionError = err instanceof Error ? err.message : String(err);
+    console.error("Redis connection failed:", connectionError);
+    return NextResponse.json({
+      status: "error",
+      message: "Redis connection failed",
+      error: connectionError,
+      hint: "Check that STORAGE_REDIS_URL is set in Vercel environment variables",
+    }, { status: 500 });
+  }
+
   const now = Date.now();
   let checked = 0;
   let followedUp = 0;
+  let errors: string[] = [];
 
   try {
     const keys = await redis.keys("consulting:lead:*");
@@ -83,6 +99,7 @@ export async function GET(_req: Request) {
       if (!raw || typeof raw !== "string") continue;
       let lead: LeadRecord;
       try { lead = JSON.parse(raw); } catch { continue; }
+
       // Skip already-processed leads (idempotency guard)
       if (lead.checked) continue;
 
@@ -93,16 +110,33 @@ export async function GET(_req: Request) {
 
       checked++;
       let booked = false;
-      try { booked = await checkCalendlyBooking(lead.email); } catch { /* skip */ }
-      if (!booked) {
-        try { await sendFollowUpEmail(lead); followedUp++; } catch { /* skip */ }
+      try { booked = await checkCalendlyBooking(lead.email); }
+      catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        errors.push(`Calendly check failed for ${lead.email}: ${msg}`);
       }
+
+      if (!booked) {
+        try { await sendFollowUpEmail(lead); followedUp++; }
+        catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          errors.push(`Follow-up email failed for ${lead.email}: ${msg}`);
+        }
+      }
+
       const updated: LeadRecord = { ...lead, checked: true, booked };
       await redis.set(key, JSON.stringify(updated));
     }
   } catch (err) {
     console.error("check-booking error:", err);
+    errors.push(err instanceof Error ? err.message : String(err));
   }
 
-  return NextResponse.json({ status: "ok", checked, followedUp, timestamp: new Date().toISOString() });
+  return NextResponse.json({
+    status: "ok",
+    checked,
+    followedUp,
+    errors: errors.length > 0 ? errors : undefined,
+    timestamp: new Date().toISOString(),
+  });
 }

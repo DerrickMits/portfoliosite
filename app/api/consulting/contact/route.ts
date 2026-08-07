@@ -63,6 +63,7 @@ export async function POST(request: Request) {
   const trimmedDetails = project_details.trim();
   const timestamp = new Date().toISOString();
 
+  // --- Notification email (non-blocking) ---
   let emailSent = false;
   try {
     emailSent = await sendNotificationEmail({ name: trimmedName, email: trimmedEmail, project_details: trimmedDetails });
@@ -70,16 +71,23 @@ export async function POST(request: Request) {
     console.error("Failed to send notification email:", err);
   }
 
+  // --- Redis: persist lead ---
   const redis = getRedis();
+  let redisError: string | null = null;
   try {
     const key = `consulting:lead:${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     await redis.zadd("consulting:leads:by:time", Date.now(), key);
     await redis.set(key, JSON.stringify({
-      name: trimmedName, email: trimmedEmail, project_details: trimmedDetails,
-      submittedAt: timestamp, checked: false, booked: false,
+      name: trimmedName,
+      email: trimmedEmail,
+      project_details: trimmedDetails,
+      submittedAt: timestamp,
+      checked: false,
+      booked: false,
     }));
   } catch (err) {
-    console.error("Failed to save lead to Redis:", err);
+    redisError = err instanceof Error ? err.message : String(err);
+    console.error("Failed to save lead to Redis:", redisError);
   }
 
   const calendlyUrl = new URL(CALENDLY_URL);
@@ -88,8 +96,13 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     status: "success",
-    message: emailSent ? "Email sent + redirecting to Calendly" : "Redirecting to Calendly",
+    message: redisError
+      ? `Redirecting to Calendly (warn: Redis error — ${redisError})`
+      : emailSent
+        ? "Email sent + redirecting to Calendly"
+        : "Redirecting to Calendly",
     redirectUrl: calendlyUrl.toString(),
     emailSent,
+    redisError,
   }, { status: 200 });
 }
