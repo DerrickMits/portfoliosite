@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/consulting/check-booking?secret=Derrick4235",
+      "schedule": "*/15 * * * *"
+    }
+  ]
+}
