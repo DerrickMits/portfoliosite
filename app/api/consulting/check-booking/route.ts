@@ -19,7 +19,7 @@ const CALENDLY_TOKEN = process.env.CALENDLY_TOKEN ?? "";
 const CALENDLY_USERNAME = "derrickodiwuor";
 const CRON_SECRET = process.env.CRON_SECRET || "";
 const FIFTEEN_MIN = 15 * 60 * 1000;
-const ABACUS_API_KEY = process.env.ABACUS_API_KEY ?? "";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY ?? "";
 
 interface LeadRecord {
   name: string;
@@ -42,14 +42,14 @@ async function checkCalendlyBooking(email: string): Promise<boolean> {
   return Array.isArray(data.collection) && data.collection.length > 0;
 }
 
-async function generateFollowUpWithAbacus(lead: LeadRecord): Promise<string> {
-  if (!ABACUS_API_KEY) {
+async function generateFollowUpWithGemini(lead: LeadRecord): Promise<string> {
+  if (!GEMINI_API_KEY) {
     return buildFallbackEmail(lead);
   }
 
-  const prompt = `Write a short, friendly follow-up email from Derrick Odiwuor (Operations & AI Automation Architect) to ${lead.name}.
+  const prompt = `You are Derrick Odiwuor, an Operations & AI Automation Architect. Write a short, friendly, professional follow-up email.
 
-CONTEXT: ${lead.name} submitted this inquiry: "${lead.project_details}" but hasn't booked a 30-min setup sprint consultation yet.
+CONTEXT: ${lead.name} submitted an inquiry about: "${lead.project_details}" but hasn't booked a 30-minute setup sprint consultation yet.
 
 RULES:
 - Warm, personal tone — like a real person typing, not a marketing robot
@@ -57,39 +57,37 @@ RULES:
 - Gently remind them to book a slot — no pressure, just helpful
 - Include Calendly link: https://calendly.com/derrickodiwuor/30min
 - Sign off as Derrick Odiwuor
-- Max 120 words
-- 1 emoji max, if any`;
+- Max 150 words
+- No generic phrases like "I hope this email finds you well"`;
 
   try {
-    const res = await fetch("https://api.abacus.ai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${ABACUS_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: "You write warm, professional follow-up emails for a business consultant. Short, genuine, no fluff." },
-          { role: "user", content: prompt },
-        ],
-        max_tokens: 250,
-        temperature: 0.7,
-      }),
-    });
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            maxOutputTokens: 300,
+            temperature: 0.7,
+          },
+        }),
+      }
+    );
 
     if (!res.ok) {
       const errText = await res.text().catch(() => "");
-      console.error(`Abacus AI error ${res.status}: ${errText}`);
+      console.error(`Gemini error ${res.status}: ${errText}`);
       return buildFallbackEmail(lead);
     }
 
     const json = await res.json();
-    const content = json?.choices?.[0]?.message?.content?.trim();
+    const content = json?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
     if (!content) return buildFallbackEmail(lead);
     return content;
   } catch (err) {
-    console.error("Abacus AI request failed:", err);
+    console.error("Gemini request failed:", err);
     return buildFallbackEmail(lead);
   }
 }
@@ -116,9 +114,8 @@ async function sendFollowUpEmail(lead: LeadRecord) {
   }
   const smtpFrom = process.env.SMTP_FROM || smtpUser;
 
-  const emailBody = await generateFollowUpWithAbacus(lead);
+  const emailBody = await generateFollowUpWithGemini(lead);
 
-  // If AI returned a subject line, use it; otherwise fallback
   let subject: string;
   let body: string;
   const firstLine = emailBody.split("\n")[0]?.trim() ?? "";
@@ -155,17 +152,14 @@ export async function GET(_req: Request) {
     return NextResponse.json({ status: "error", message: "Unauthorized" }, { status: 401 });
   }
 
-  // sendReminderOnly=true → skip the Calendly booking check and send to ALL un-checked leads
-  // Useful for testing: hit the endpoint with ?secret=...&sendReminderOnly=true
   const sendReminderOnly = searchParams.get("sendReminderOnly") === "true";
 
-  // Early env var check
   const missing: string[] = [];
   if (!process.env.STORAGE_REDIS_URL) missing.push("STORAGE_REDIS_URL");
   if (!process.env.SMTP_USER) missing.push("SMTP_USER");
   if (!process.env.SMTP_PASS) missing.push("SMTP_PASS");
   if (!process.env.CALENDLY_TOKEN) missing.push("CALENDLY_TOKEN");
-  if (!process.env.ABACUS_API_KEY) missing.push("ABACUS_API_KEY");
+  if (!process.env.GEMINI_API_KEY) missing.push("GEMINI_API_KEY");
   if (missing.length > 0) {
     return NextResponse.json({ status: "error", message: "Missing env vars", missing }, { status: 500 });
   }
@@ -185,8 +179,6 @@ export async function GET(_req: Request) {
       try { lead = JSON.parse(raw); } catch { continue; }
       if (lead.checked) continue;
 
-      // In normal mode, only process leads 15min–24hrs old
-      // In test mode (sendReminderOnly), process all un-checked leads regardless of age
       const ageMs = now - new Date(lead.submittedAt).getTime();
       if (!sendReminderOnly) {
         if (ageMs < FIFTEEN_MIN) continue;
