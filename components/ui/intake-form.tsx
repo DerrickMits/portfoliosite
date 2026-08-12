@@ -73,8 +73,9 @@ export function IntakeForm({ onComplete }: IntakeFormProps) {
         const url = new URL("https://calendly.com/derrickodiwuor/30min");
         url.searchParams.set("name", data.fullName);
         url.searchParams.set("email", data.workEmail);
-        window.location.href = url.toString();
-      }, 1500);
+        window.location.replace(url.toString());
+      }, 1000);
+      }, 1000);
     } catch (e) { setError(e instanceof Error ? e.message : "Something went wrong."); }
     finally { setSubmitting(false); }
   };

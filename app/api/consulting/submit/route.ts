@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { intakeSchema } from "@/lib/validation";
-import { sendClientConfirmationEmail, sendAdminNotificationEmail } from "@/lib/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,6 +8,8 @@ export const dynamic = "force-dynamic";
 function getBaseUrl() {
   return process.env.NEXT_PUBLIC_BASE_URL ?? "https://portfoliosite-pearl-one.vercel.app";
 }
+
+const CALENDLY_URL = "https://calendly.com/derrickodiwuor/30min";
 
 function coerceFormData(rawBody: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = { ...rawBody };
@@ -54,7 +55,7 @@ export async function POST(request: Request) {
 
     const data = parsed.data;
 
-    // Upload files
+    // Upload files to Supabase Storage
     const tempId = `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
     const sb = getSupabase() as any;
     const fileUrls: string[] = [];
@@ -96,7 +97,7 @@ export async function POST(request: Request) {
 
     const clientId = record.id;
 
-    // Save lead to Redis for the check-booking cron
+    // Save lead to Redis for the check-booking cron (15-min follow-up)
     try {
       const redisUrl = process.env.STORAGE_REDIS_URL;
       if (redisUrl) {
@@ -106,7 +107,7 @@ export async function POST(request: Request) {
         await redis.set(leadKey, JSON.stringify({
           name: data.fullName,
           email: data.workEmail,
-          project_details: data.projectScope,
+          project_details: data.projectScope || data.companyName,
           submittedAt: new Date().toISOString(),
           checked: false,
           booked: false,
@@ -118,21 +119,37 @@ export async function POST(request: Request) {
       console.error("Redis save error (non-blocking):", redisErr);
     }
 
-    // Send emails + webhook (non-blocking)
-    const webhookPayload = {
-      clientId, companyName: data.companyName, fullName: data.fullName,
-      email: data.workEmail, projectScope: data.projectScope,
-      crmSetup: data.crmSetup, primaryBottleneck: data.primaryBottleneck,
-      currentTools: data.currentTools, fileUrls, submittedAt: new Date().toISOString(),
-    };
-    sendClientConfirmationEmail(clientId, data.fullName, data.workEmail).catch(() => {});
-    sendAdminNotificationEmail(webhookPayload).catch(() => {});
+    // Fire Make.com webhook (admin alert + downstream automations)
     const makeUrl = process.env.MAKE_COM_WEBHOOK_URL;
     if (makeUrl) {
-      fetch(makeUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(webhookPayload) }).catch(() => {});
+      fetch(makeUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clientId,
+          companyName: data.companyName,
+          fullName: data.fullName,
+          email: data.workEmail,
+          projectScope: data.projectScope,
+          crmSetup: data.crmSetup,
+          primaryBottleneck: data.primaryBottleneck,
+          currentTools: data.currentTools,
+          fileUrls,
+          submittedAt: new Date().toISOString(),
+        }),
+      }).catch(() => {});
     }
 
-    return NextResponse.json({ status: "success", clientId, dashboardUrl: `${getBaseUrl()}/onboarding/${clientId}` });
+    // Build Calendly redirect URL with pre-filled name + email
+    const calendlyUrl = new URL(CALENDLY_URL);
+    calendlyUrl.searchParams.set("name", data.fullName);
+    calendlyUrl.searchParams.set("email", data.workEmail);
+
+    return NextResponse.json({
+      status: "success",
+      clientId,
+      redirectUrl: calendlyUrl.toString(),
+    });
 
   } catch (err) {
     console.error("Submit route unhandled error:", err);
