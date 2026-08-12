@@ -2,8 +2,8 @@
 
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, ChevronRight, ClipboardList, Zap, Building2, Upload, X, Loader2 } from "lucide-react";
-import { intakeSchema, type IntakeFormData } from "@/lib/validation";
+import { Check, ChevronRight, ClipboardList, Zap, Building2, Upload, X } from "lucide-react";
+import { type IntakeFormData } from "@/lib/validation";
 
 type Step = 1 | 2 | 3;
 
@@ -16,7 +16,7 @@ const STEPS = [
 ] as const;
 
 interface IntakeFormProps {
-  onComplete?: (clientId: string, dashboardUrl: string) => void;
+  onComplete?: () => void;
 }
 
 export function IntakeForm({ onComplete }: IntakeFormProps) {
@@ -65,22 +65,24 @@ export function IntakeForm({ onComplete }: IntakeFormProps) {
       files.forEach(f => fd.append("files", f as Blob));
 
       const res = await fetch("/api/consulting/submit", { method: "POST", body: fd });
- let body: any = {};
- try { body = await res.json(); } catch { body = {}; }
- if (!res.ok) throw new Error(body.detail ? `${body.message}: ${JSON.stringify(body.detail)}` : body.message || "Submission failed");
+      let body: any = {};
+      try { body = await res.json(); } catch { body = {}; }
+      if (!res.ok) throw new Error(body.detail ? `${body.message}: ${JSON.stringify(body.detail)}` : body.message || "Submission failed");
+
       setSubmitted(true);
       setTimeout(() => {
         const url = new URL("https://calendly.com/derrickodiwuor/30min");
         url.searchParams.set("name", data.fullName);
         url.searchParams.set("email", data.workEmail);
         window.location.replace(url.toString());
-      }, 1000);
-      }, 1000);
-    } catch (e) { setError(e instanceof Error ? e.message : "Something went wrong."); }
-    finally { setSubmitting(false); }
+      }, 1500);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  /* ── Success ── */
   if (submitted) return (
     <motion.div initial={{ opacity: 0, scale: .96 }} animate={{ opacity: 1, scale: 1 }}
       className="text-center py-16 px-6">
@@ -89,20 +91,18 @@ export function IntakeForm({ onComplete }: IntakeFormProps) {
       </div>
       <h3 className="text-2xl font-display font-bold text-[#1A1A1A] dark:text-cream mb-2">Application received</h3>
       <p className="text-[#5A5852] dark:text-grey-300 max-w-md mx-auto">
-        We'll review your details and reach out within 24 hours to schedule your Setup Sprint.</p>
+        We\'ll review your details and reach out within 24 hours to schedule your Setup Sprint.</p>
     </motion.div>
   );
 
   const inputCls = "w-full bg-white dark:bg-warm-800 border border-[#E5E2D9] dark:border-warm-700 rounded-xl px-4 py-3 text-sm text-[#1A1A1A] dark:text-cream placeholder:text-[#8C7A6B]/60 dark:placeholder:text-grey-500 focus:outline-none focus:border-[#7A8B7B] transition-colors";
   const radio = (val: string, sel: string) =>
-    `w-full text-left px-5 py-4 rounded-xl border transition-all text-sm ${
-      sel === val ? "border-[#7A8B7B] bg-[#7A8B7B]/8 dark:bg-[#7A8B7B]/15" : "border-[#E5E2D9] dark:border-warm-700 hover:border-[#7A8B7B]/40 bg-white dark:bg-warm-800"}`;
+    `w-full text-left px-5 py-4 rounded-xl border transition-all text-sm ${sel === val ? "border-[#7A8B7B] bg-[#7A8B7B]/8 dark:bg-[#7A8B7B]/15" : "border-[#E5E2D9] dark:border-warm-700 hover:border-[#7A8B7B]/40 bg-white dark:bg-warm-800"}`;
   const lbl = (sel: string, v: string) =>
     `font-medium ${sel === v ? "text-[#1A1A1A] dark:text-cream" : "text-[#5A5852] dark:text-grey-300"}`;
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-
       {/* Step progress */}
       <div className="flex items-center justify-center gap-2 mb-10">
         {STEPS.map((s, i) => (
@@ -121,8 +121,6 @@ export function IntakeForm({ onComplete }: IntakeFormProps) {
       </div>
 
       <AnimatePresence mode="wait">
-
-        {/* ── STEP 1 ── */}
         {step === 1 && (
           <motion.div key="1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: .3 }} className="space-y-6">
             <div>
@@ -137,7 +135,6 @@ export function IntakeForm({ onComplete }: IntakeFormProps) {
               <label htmlFor="project-scope" className="text-sm font-semibold text-[#1A1A1A] dark:text-cream mb-2 block">Project Scope <span className="text-red-400">*</span></label>
               <textarea id="project-scope" rows={3} value={data.projectScope} onChange={e => update({ projectScope: e.target.value })} placeholder="Briefly describe what you want to achieve..." className={`${inputCls} resize-none`} />
             </div>
-            {/* File upload */}
             <div>
               <p className="text-sm font-semibold text-[#1A1A1A] dark:text-cream mb-3">Attachments <span className="font-normal text-[#8C7A6B] dark:text-grey-500">(logos, brand guidelines — optional)</span></p>
               <div onDragOver={e => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)} onDrop={e => { e.preventDefault(); setDragOver(false); onFileSelect(e.dataTransfer.files); }}
@@ -163,7 +160,6 @@ export function IntakeForm({ onComplete }: IntakeFormProps) {
                 </div>
               )}
             </div>
-            {/* CRM radio */}
             <fieldset>
               <legend className="text-sm font-semibold text-[#1A1A1A] dark:text-cream mb-3">CRM Setup <span className="text-red-400">*</span></legend>
               <div className="grid gap-3">
@@ -175,7 +171,6 @@ export function IntakeForm({ onComplete }: IntakeFormProps) {
           </motion.div>
         )}
 
-        {/* ── STEP 2 ── */}
         {step === 2 && (
           <motion.div key="2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: .3 }} className="space-y-6">
             <div>
@@ -213,7 +208,6 @@ export function IntakeForm({ onComplete }: IntakeFormProps) {
           </motion.div>
         )}
 
-        {/* ── STEP 3 ── */}
         {step === 3 && (
           <motion.div key="3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: .3 }} className="space-y-5">
             <div>
@@ -258,7 +252,7 @@ export function IntakeForm({ onComplete }: IntakeFormProps) {
         ) : (
           <button type="button" disabled={!ok() || submitting} onClick={submit}
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#1A1A1A] dark:bg-warm-100 text-white dark:text-warm-900 text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#333] transition-all">
-            {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Submitting…</> : <>Submit Application <ChevronRight className="w-4 h-4" /></>}
+            {submitting ? <>Submitting…</> : <>Submit Application <ChevronRight className="w-4 h-4" /></>}
           </button>
         )}
       </div>
