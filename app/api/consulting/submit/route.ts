@@ -40,14 +40,12 @@ export async function POST(request: Request) {
 
   const data = parsed.data;
 
-  // ─── Stage 2: generate clientId ───
-  const clientId = `client_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
-
-  // ─── Stage 3: upload files to Supabase Storage ───
+  // Upload files using a temp id for the storage path
+  const tempId = `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
   const supabaseClient = getSupabase() as any;
   const fileUrls: string[] = [];
   for (const file of files) {
-    const path = `client-assets/${clientId}/${Date.now()}-${file.name}`;
+    const path = `client-assets/${tempId}/${Date.now()}-${file.name}`;
     const { error } = await supabaseClient.storage.from("client-assets").upload(path, file, { contentType: file.type });
     if (!error) {
       const { data: urlData } = supabaseClient.storage.from("client-assets").getPublicUrl(path);
@@ -55,24 +53,21 @@ export async function POST(request: Request) {
     }
   }
 
-  // ─── Stage 4: insert into Supabase DB ───
-  const insertPayload = {
-    id: clientId,
-    company_name: data.companyName,
-    project_scope: data.projectScope,
-    crm_setup: data.crmSetup,
-    primary_bottleneck: data.primaryBottleneck,
-    current_tools: data.currentTools,
-    manual_task_description: data.manualTaskDescription?.trim() || null,
-    full_name: data.fullName,
-    work_email: data.workEmail,
-    has_admin_credentials_ready: data.hasAdminCredentialsReady,
-    status: "PENDING",
-  } as Record<string, unknown>;
-
+  // Insert into DB — let Supabase auto-generate the UUID id
   const { data: record, error: dbError } = await (getSupabase() as any)
     .from("clients")
-    .insert(insertPayload)
+    .insert({
+      company_name: data.companyName,
+      project_scope: data.projectScope,
+      crm_setup: data.crmSetup,
+      primary_bottleneck: data.primaryBottleneck,
+      current_tools: data.currentTools,
+      manual_task_description: data.manualTaskDescription?.trim() || null,
+      full_name: data.fullName,
+      work_email: data.workEmail,
+      has_admin_credentials_ready: data.hasAdminCredentialsReady,
+      status: "PENDING",
+    })
     .select()
     .single();
 
@@ -81,7 +76,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ status: "error", message: "Failed to save. Try again." }, { status: 500 });
   }
 
-  // ─── Stage 5: Resend emails (non-blocking) ───
+  const clientId = record.id;
+
+  // Send emails (non-blocking)
   const webhookPayload = {
     clientId,
     companyName: data.companyName,
@@ -98,13 +95,12 @@ export async function POST(request: Request) {
   sendClientConfirmationEmail(clientId, data.fullName, data.workEmail).catch(() => {});
   sendAdminNotificationEmail(webhookPayload).catch(() => {});
 
-  // ─── Stage 6: Make.com webhook (non-blocking) ───
+  // Make.com webhook (non-blocking)
   const makeUrl = process.env.MAKE_COM_WEBHOOK_URL;
   if (makeUrl) {
     fetch(makeUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(webhookPayload) }).catch(() => {});
   }
 
-  // ─── Stage 7: respond with clientId for redirect ───
   return NextResponse.json({
     status: "success",
     clientId,
