@@ -1,435 +1,257 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, ChevronRight, Zap, ClipboardList, CalendarDays } from "lucide-react";
+import { Check, ChevronRight, ClipboardList, Zap, Building2, Upload, X, Loader2 } from "lucide-react";
+import { intakeSchema, type IntakeFormData } from "@/lib/validation";
 
 type Step = 1 | 2 | 3;
 
-type FormData = {
-  crmStatus: string;
-  aiGoal: string;
-  currentTools: string[];
-  notes: string;
-  name: string;
-  email: string;
-  hasAccess: boolean;
-};
-
-const TOOLS = ["Zapier", "n8n", "OpenAI", "Make.com"];
-
-const ZAPIER_URL = "/api/intake";
-const CALENDLY_URL = "https://calendly.com/derrickodiwuor/30min";
-
-const INITIAL_DATA: FormData = {
-  crmStatus: "",
-  aiGoal: "",
-  currentTools: [],
-  notes: "",
-  name: "",
-  email: "",
-  hasAccess: false,
-};
+const TOOLS = ["GoHighLevel","HubSpot","Salesforce","Zapier","Make.com","n8n","OpenAI API","Airtable","Notion","Google Sheets","Other","None"];
 
 const STEPS = [
-  { num: 1, label: "CRM Status", icon: ClipboardList },
-  { num: 2, label: "AI & Workflows", icon: Zap },
-  { num: 3, label: "Contact & Logistics", icon: CalendarDays },
+  { num: 1, label: "CRM & Overview", icon: ClipboardList },
+  { num: 2, label: "Objectives",    icon: Zap },
+  { num: 3, label: "Contact",       icon: Building2 },
 ] as const;
 
-export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
+interface IntakeFormProps {
+  onComplete?: (clientId: string, dashboardUrl: string) => void;
+}
+
+export function IntakeForm({ onComplete }: IntakeFormProps) {
   const [step, setStep] = useState<Step>(1);
-  const [data, setData] = useState<FormData>(INITIAL_DATA);
+  const [data, setData] = useState<IntakeFormData>({
+    companyName: "", projectScope: "", crmSetup: "" as any,
+    primaryBottleneck: "" as any, currentTools: [], manualTaskDescription: "",
+    fullName: "", workEmail: "", hasAdminCredentialsReady: false,
+  });
+  const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const [dragOver, setDragOver] = useState(false);
 
-  const update = (partial: Partial<FormData>) =>
-    setData((prev) => ({ ...prev, ...partial }));
+  const update = (p: Partial<IntakeFormData>) =>
+    setData(prev => ({ ...prev, ...p }));
 
-  const toggleTool = (tool: string) => {
-    setData((prev) => ({
-      ...prev,
-      currentTools: prev.currentTools.includes(tool)
-        ? prev.currentTools.filter((t) => t !== tool)
-        : [...prev.currentTools, tool],
-    }));
+  const toggleTool = (t: string) =>
+    setData(p => ({ ...p, currentTools: p.currentTools.includes(t) ? p.currentTools.filter(x => x !== t) : [...p.currentTools, t] }));
+
+  const onFileSelect = useCallback((fl: FileList | null) => {
+    if (!fl) return;
+    setFiles(prev => [...prev, ...Array.from(fl).filter(f => f.size <= 10 * 1024 * 1024)]);
+  }, []);
+
+  const fmtSize = (b: number) => b < 1048576 ? `${(b/1024).toFixed(0)} KB` : `${(b/1048576).toFixed(1)} MB`;
+
+  const ok = (): boolean => {
+    if (step === 1) return !!data.companyName.trim() && !!data.projectScope.trim() && !!data.crmSetup;
+    if (step === 2) return !!data.primaryBottleneck;
+    return !!data.fullName.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.workEmail);
   };
 
-  const canProceed = (): boolean => {
-    if (step === 1) return data.crmStatus !== "";
-    if (step === 2) return data.aiGoal !== "";
-    return data.name.trim() !== "" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email);
+  const submit = async () => {
+    if (!ok()) return;
+    setSubmitting(true); setError("");
+    try {
+      const fd = new FormData();
+      (Object.keys(data) as Array<keyof IntakeFormData>).forEach(k => {
+        const v = data[k];
+        if (Array.isArray(v)) fd.append(k, JSON.stringify(v));
+        else if (typeof v === "boolean") fd.append(k, String(v));
+        else if (v) fd.append(k, v);
+      });
+      files.forEach(f => fd.append("files", f as Blob));
+
+      const res = await fetch("/api/consulting/submit", { method: "POST", body: fd });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.message || "Submission failed");
+      setSubmitted(true);
+      onComplete?.(body.clientId, body.dashboardUrl);
+    } catch (e) { setError(e instanceof Error ? e.message : "Something went wrong."); }
+    finally { setSubmitting(false); }
   };
 
-  const handleSubmit = async () => {
-    if (!canProceed()) return;
-    setSubmitting(true);
-    setError("");
+  /* ── Success ── */
+  if (submitted) return (
+    <motion.div initial={{ opacity: 0, scale: .96 }} animate={{ opacity: 1, scale: 1 }}
+      className="text-center py-16 px-6">
+      <div className="w-16 h-16 rounded-full bg-[#7A8B7B]/15 flex items-center justify-center mx-auto mb-6">
+        <Check className="w-8 h-8 text-[#7A8B7B]" />
+      </div>
+      <h3 className="text-2xl font-display font-bold text-[#1A1A1A] dark:text-cream mb-2">Application received</h3>
+      <p className="text-[#5A5852] dark:text-grey-300 max-w-md mx-auto">
+        We'll review your details and reach out within 24 hours to schedule your Setup Sprint.</p>
+    </motion.div>
+  );
 
-    const payload = {
-      ...data,
-      currentTools: data.currentTools.length > 0 ? data.currentTools : ["None"],
-      submittedAt: new Date().toISOString(),
-    };
-
-    // Fire-and-forget: submit to Zapier in the background.
-    // Always redirect to Calendly even if the webhook is offline / returns 5xx.
-    fetch("/api/intake", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    }).catch((err) => {
-      console.warn("Intake webhook failed (non-blocking):", err);
-    });
-
-    const calendly = `${CALENDLY_URL}?name=${encodeURIComponent(data.name)}&email=${encodeURIComponent(data.email)}`;
-    window.location.replace(calendly);
-  };
-
-  if (submitted) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="text-center py-16 px-6"
-      >
-        <div className="w-16 h-16 rounded-full bg-[#7A8B7B]/15 flex items-center justify-center mx-auto mb-6">
-          <Check className="w-8 h-8 text-[#7A8B7B]" />
-        </div>
-        <h3 className="text-2xl font-display font-bold text-[#1A1A1A] dark:text-cream mb-2">
-          Intake submitted
-        </h3>
-        <p className="text-[#5A5852] dark:text-grey-300 max-w-md mx-auto">
-          Redirecting you to schedule your 4-Hour Setup Sprint...
-        </p>
-      </motion.div>
-    );
-  }
+  const inputCls = "w-full bg-white dark:bg-warm-800 border border-[#E5E2D9] dark:border-warm-700 rounded-xl px-4 py-3 text-sm text-[#1A1A1A] dark:text-cream placeholder:text-[#8C7A6B]/60 dark:placeholder:text-grey-500 focus:outline-none focus:border-[#7A8B7B] transition-colors";
+  const radio = (val: string, sel: string) =>
+    `w-full text-left px-5 py-4 rounded-xl border transition-all text-sm ${
+      sel === val ? "border-[#7A8B7B] bg-[#7A8B7B]/8 dark:bg-[#7A8B7B]/15" : "border-[#E5E2D9] dark:border-warm-700 hover:border-[#7A8B7B]/40 bg-white dark:bg-warm-800"}`;
+  const lbl = (sel: string, v: string) =>
+    `font-medium ${sel === v ? "text-[#1A1A1A] dark:text-cream" : "text-[#5A5852] dark:text-grey-300"}`;
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      {/* Step progress bar */}
+
+      {/* Step progress */}
       <div className="flex items-center justify-center gap-2 mb-10">
         {STEPS.map((s, i) => (
           <div key={s.num} className="flex items-center gap-2">
-            <div
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-full text-xs font-semibold uppercase tracking-[0.12em] transition-all duration-300 ${
-                step === s.num
-                  ? "bg-[#1A1A1A] text-white dark:bg-warm-100 dark:text-warm-900"
-                  : step > s.num
-                  ? "bg-[#7A8B7B]/15 text-[#7A8B7B] dark:text-[#9CB09D]"
-                  : "bg-[#E5E2D9]/60 text-[#8C7A6B] dark:bg-warm-700 dark:text-grey-400"
-              }`}
-            >
+            <div className={`flex items-center gap-2 px-3.5 py-2 rounded-full text-xs font-semibold uppercase tracking-[0.12em] transition-all ${
+              step === s.num ? "bg-[#1A1A1A] text-white dark:bg-warm-100 dark:text-warm-900"
+                : step > s.num ? "bg-[#7A8B7B]/15 text-[#7A8B7B]"
+                : "bg-[#E5E2D9]/60 text-[#8C7A6B] dark:bg-warm-700 dark:text-grey-400"}`}>
               <s.icon className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">{s.label}</span>
               <span className="sm:hidden">Step {s.num}</span>
             </div>
-            {i < STEPS.length - 1 && (
-              <div
-                className={`w-8 h-px transition-colors duration-300 ${
-                  step > s.num ? "bg-[#7A8B7B]/40" : "bg-[#E5E2D9]"
-                }`}
-              />
-            )}
+            {i < STEPS.length - 1 && <div className={`w-8 h-px ${step > s.num ? "bg-[#7A8B7B]/40" : "bg-[#E5E2D9]"}`} />}
           </div>
         ))}
       </div>
 
       <AnimatePresence mode="wait">
-        {/* ── STEP 1: CRM Status ── */}
+
+        {/* ── STEP 1 ── */}
         {step === 1 && (
-          <motion.div
-            key="step1"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-            className="space-y-6"
-          >
+          <motion.div key="1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: .3 }} className="space-y-6">
             <div>
-              <h3 className="text-xl font-display font-bold text-[#1A1A1A] dark:text-cream mb-1">
-                What is your current CRM setup?
-              </h3>
-              <p className="text-sm text-[#5A5852] dark:text-grey-300">
-                We integrate with existing tools or build your CRM from scratch.
-              </p>
+              <h3 className="text-xl font-display font-bold text-[#1A1A1A] dark:text-cream mb-1">Tell us about your business</h3>
+              <p className="text-sm text-[#5A5852] dark:text-grey-300">A quick overview to tailor the sprint to your needs.</p>
             </div>
-            <div className="grid gap-3">
-              {[
-                "GoHighLevel (GHL)",
-                "HubSpot or Salesforce",
-                "Other CRM",
-                "No CRM yet (Need recommendation & setup)",
-              ].map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => update({ crmStatus: option })}
-                  className={`w-full text-left px-5 py-4 rounded-xl border transition-all duration-200 text-sm ${
-                    data.crmStatus === option
-                      ? "border-[#7A8B7B] bg-[#7A8B7B]/8 dark:bg-[#7A8B7B]/15"
-                      : "border-[#E5E2D9] dark:border-warm-700 hover:border-[#7A8B7B]/40 bg-white dark:bg-warm-800"
-                  }`}
-                >
-                  <span
-                    className={`font-medium ${
-                      data.crmStatus === option
-                        ? "text-[#1A1A1A] dark:text-cream"
-                        : "text-[#5A5852] dark:text-grey-300"
-                    }`}
-                  >
-                    {option}
-                  </span>
-                </button>
-              ))}
+            <div>
+              <label htmlFor="company-name" className="text-sm font-semibold text-[#1A1A1A] dark:text-cream mb-2 block">Company Name <span className="text-red-400">*</span></label>
+              <input id="company-name" type="text" value={data.companyName} onChange={e => update({ companyName: e.target.value })} placeholder="Acme Inc." className={inputCls} />
             </div>
+            <div>
+              <label htmlFor="project-scope" className="text-sm font-semibold text-[#1A1A1A] dark:text-cream mb-2 block">Project Scope <span className="text-red-400">*</span></label>
+              <textarea id="project-scope" rows={3} value={data.projectScope} onChange={e => update({ projectScope: e.target.value })} placeholder="Briefly describe what you want to achieve..." className={`${inputCls} resize-none`} />
+            </div>
+            {/* File upload */}
+            <div>
+              <p className="text-sm font-semibold text-[#1A1A1A] dark:text-cream mb-3">Attachments <span className="font-normal text-[#8C7A6B] dark:text-grey-500">(logos, brand guidelines — optional)</span></p>
+              <div onDragOver={e => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)} onDrop={e => { e.preventDefault(); setDragOver(false); onFileSelect(e.dataTransfer.files); }}
+                onClick={() => document.getElementById("file-upload")?.click()}
+                className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors cursor-pointer ${ dragOver ? "border-[#7A8B7B] bg-[#7A8B7B]/5" : "border-[#E5E2D9] dark:border-warm-700 hover:border-[#7A8B7B]/40" }`}>
+                <Upload className="w-6 h-6 text-[#8C7A6B] dark:text-grey-400 mx-auto mb-2" />
+                <p className="text-sm text-[#5A5852] dark:text-grey-300">Drop files here or <span className="text-[#7A8B7B] font-medium">browse</span></p>
+                <p className="text-xs text-[#8C7A6B] dark:text-grey-500 mt-1">Max 10 MB · PNG, JPG, PDF, DOC</p>
+                <input id="file-upload" type="file" multiple accept=".png,.jpg,.jpeg,.pdf,.doc,.docx" className="hidden" onChange={e => onFileSelect(e.target.files)} />
+              </div>
+              {files.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  {files.map((f, i) => (
+                    <div key={i} className="flex items-center justify-between bg-[#F4F3EE] dark:bg-warm-800 border border-[#E5E2D9] dark:border-warm-700 rounded-lg px-3 py-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Upload className="w-3.5 h-3.5 text-[#7A8B7B] shrink-0" />
+                        <span className="text-xs text-[#1A1A1A] dark:text-cream truncate">{f.name}</span>
+                        <span className="text-xs text-[#8C7A6B] dark:text-grey-500 shrink-0">{fmtSize(f.size)}</span>
+                      </div>
+                      <button type="button" onClick={() => setFiles(p => p.filter((_, idx) => idx !== i))} className="text-[#8C7A6B] hover:text-red-500 ml-2"><X className="w-3.5 h-3.5" /></button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            {/* CRM radio */}
+            <fieldset>
+              <legend className="text-sm font-semibold text-[#1A1A1A] dark:text-cream mb-3">CRM Setup <span className="text-red-400">*</span></legend>
+              <div className="grid gap-3">
+                {["GHL","HubSpot or Salesforce","Other CRM","No CRM yet"].map(o => (
+                  <button key={o} type="button" onClick={() => update({ crmSetup: o as any })} className={radio(o, data.crmSetup)}><span className={lbl(o, data.crmSetup)}>{o}</span></button>
+                ))}
+              </div>
+            </fieldset>
           </motion.div>
         )}
 
-        {/* ── STEP 2: AI Automation ── */}
+        {/* ── STEP 2 ── */}
         {step === 2 && (
-          <motion.div
-            key="step2"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-            className="space-y-6"
-          >
+          <motion.div key="2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: .3 }} className="space-y-6">
             <div>
-              <h3 className="text-xl font-display font-bold text-[#1A1A1A] dark:text-cream mb-1">
-                AI &amp; Workflow Objectives
-              </h3>
-              <p className="text-sm text-[#5A5852] dark:text-grey-300">
-                Select your primary bottleneck so we hit the ground running.
-              </p>
+              <h3 className="text-xl font-display font-bold text-[#1A1A1A] dark:text-cream mb-1">AI &amp; Workflow Objectives</h3>
+              <p className="text-sm text-[#5A5852] dark:text-grey-300">Select your primary bottleneck so we can hit the ground running.</p>
             </div>
-
-            {/* AI Goal radio */}
-            <div className="grid gap-3">
-              {[
-                "AI Lead Nurturing & Intent-Based SMS/Email Replies",
-                "Automated Data Extraction & CRM Sync",
-                "Custom n8n / Zapier Automation Triggers",
-                "Complete CRM Pipeline + Follow-Up Setup",
-              ].map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => update({ aiGoal: option })}
-                  className={`w-full text-left px-5 py-4 rounded-xl border transition-all duration-200 text-sm ${
-                    data.aiGoal === option
-                      ? "border-[#7A8B7B] bg-[#7A8B7B]/8 dark:bg-[#7A8B7B]/15"
-                      : "border-[#E5E2D9] dark:border-warm-700 hover:border-[#7A8B7B]/40 bg-white dark:bg-warm-800"
-                  }`}
-                >
-                  <span
-                    className={`font-medium ${
-                      data.aiGoal === option
-                        ? "text-[#1A1A1A] dark:text-cream"
-                        : "text-[#5A5852] dark:text-grey-300"
-                    }`}
-                  >
-                    {option}
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            {/* Current tools multi-select */}
+            <fieldset>
+              <legend className="text-sm font-semibold text-[#1A1A1A] dark:text-cream mb-3">Primary Bottleneck <span className="text-red-400">*</span></legend>
+              <div className="grid gap-3">
+                {["AI Lead Nurturing","Automated Data Extraction","Custom Automation Triggers","Complete Pipeline Setup"].map(o => (
+                  <button key={o} type="button" onClick={() => update({ primaryBottleneck: o as any })} className={radio(o, data.primaryBottleneck)}><span className={lbl(o, data.primaryBottleneck)}>{o}</span></button>
+                ))}
+              </div>
+            </fieldset>
             <div>
-              <p className="text-sm font-semibold text-[#1A1A1A] dark:text-cream mb-3">
-                Current tools (select all that apply)
-              </p>
+              <p className="text-sm font-semibold text-[#1A1A1A] dark:text-cream mb-3">Current Tools <span className="font-normal text-[#8C7A6B] dark:text-grey-500">(select all that apply)</span></p>
               <div className="flex flex-wrap gap-2">
-                {TOOLS.map((tool) => {
-                  const active = data.currentTools.includes(tool);
+                {TOOLS.map(t => {
+                  const on = data.currentTools.includes(t);
                   return (
-                    <button
-                      key={tool}
-                      type="button"
-                      onClick={() => toggleTool(tool)}
-                      className={`px-4 py-2 rounded-lg border text-xs font-semibold uppercase tracking-wider transition-all duration-200 ${
-                        active
-                          ? "border-[#7A8B7B] bg-[#7A8B7B]/12 text-[#7A8B7B] dark:bg-[#7A8B7B]/20 dark:text-[#9CB09D]"
-                          : "border-[#E5E2D9] dark:border-warm-700 text-[#8C7A6B] dark:text-grey-400 hover:border-[#7A8B7B]/40"
-                      }`}
-                    >
-                      {tool}
+                    <button key={t} type="button" onClick={() => toggleTool(t)}
+                      className={`px-4 py-2 rounded-lg border text-xs font-semibold uppercase tracking-wider transition-all ${
+                        on ? "border-[#7A8B7B] bg-[#7A8B7B]/12 text-[#7A8B7B] dark:bg-[#7A8B7B]/20 dark:text-[#9CB09D]"
+                           : "border-[#E5E2D9] dark:border-warm-700 text-[#8C7A6B] dark:text-grey-400 hover:border-[#7A8B7B]/40"}`}>
+                      {t}
                     </button>
                   );
                 })}
-                <button
-                  type="button"
-                  onClick={() => update({ currentTools: ["None"] })}
-                  className={`px-4 py-2 rounded-lg border text-xs font-semibold uppercase tracking-wider transition-all duration-200 ${
-                    data.currentTools.includes("None")
-                      ? "border-[#7A8B7B] bg-[#7A8B7B]/12 text-[#7A8B7B] dark:bg-[#7A8B7B]/20 dark:text-[#9CB09D]"
-                      : "border-[#E5E2D9] dark:border-warm-700 text-[#8C7A6B] dark:text-grey-400 hover:border-[#7A8B7B]/40"
-                  }`}
-                >
-                  None
-                </button>
               </div>
             </div>
-
-            {/* Notes textarea */}
             <div>
-              <label
-                htmlFor="intake-notes"
-                className="text-sm font-semibold text-[#1A1A1A] dark:text-cream mb-2 block"
-              >
-                Describe the manual task you want automated{" "}
-                <span className="font-normal text-[#8C7A6B] dark:text-grey-500">
-                  (Optional)
-                </span>
-              </label>
-              <textarea
-                id="intake-notes"
-                rows={3}
-                value={data.notes}
-                onChange={(e) => update({ notes: e.target.value })}
-                placeholder="e.g., Manual lead follow-up taking 5+ hours per week..."
-                className="w-full bg-white dark:bg-warm-800 border border-[#E5E2D9] dark:border-warm-700 rounded-xl px-4 py-3 text-sm text-[#1A1A1A] dark:text-cream placeholder:text-[#8C7A6B]/60 dark:placeholder:text-grey-500 focus:outline-none focus:border-[#7A8B7B] transition-colors resize-none"
-              />
+              <label htmlFor="manual" className="text-sm font-semibold text-[#1A1A1A] dark:text-cream mb-2 block">Describe the manual task you want automated <span className="font-normal text-[#8C7A6B] dark:text-grey-500">(Optional)</span></label>
+              <textarea id="manual" rows={3} value={data.manualTaskDescription} onChange={e => update({ manualTaskDescription: e.target.value })} placeholder="e.g., Manual lead follow-up taking 5+ hours per week..." className={`${inputCls} resize-none`} />
             </div>
           </motion.div>
         )}
 
-        {/* ── STEP 3: Contact & Logistics ── */}
+        {/* ── STEP 3 ── */}
         {step === 3 && (
-          <motion.div
-            key="step3"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-            className="space-y-5"
-          >
+          <motion.div key="3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: .3 }} className="space-y-5">
             <div>
-              <h3 className="text-xl font-display font-bold text-[#1A1A1A] dark:text-cream mb-1">
-                Where should we send your implementation blueprint?
-              </h3>
-              <p className="text-sm text-[#5A5852] dark:text-grey-300">
-                We&apos;ll send your personalized sprint plan and calendar invite.
-              </p>
+              <h3 className="text-xl font-display font-bold text-[#1A1A1A] dark:text-cream mb-1">Contact &amp; Delivery</h3>
+              <p className="text-sm text-[#5A5852] dark:text-grey-300">Where should we send your setup sprint confirmation?</p>
             </div>
-
-            {/* Name */}
             <div>
-              <label
-                htmlFor="intake-name"
-                className="text-sm font-semibold text-[#1A1A1A] dark:text-cream mb-2 block"
-              >
-                Full Name <span className="text-red-400">*</span>
-              </label>
-              <input
-                id="intake-name"
-                type="text"
-                value={data.name}
-                onChange={(e) => update({ name: e.target.value })}
-                placeholder="Derrick Odiwuor"
-                className="w-full bg-white dark:bg-warm-800 border border-[#E5E2D9] dark:border-warm-700 rounded-xl px-4 py-3 text-sm text-[#1A1A1A] dark:text-cream placeholder:text-[#8C7A6B]/60 dark:placeholder:text-grey-500 focus:outline-none focus:border-[#7A8B7B] transition-colors"
-              />
+              <label htmlFor="s3-company" className="text-sm font-semibold text-[#1A1A1A] dark:text-cream mb-2 block">Company Name <span className="text-red-400">*</span></label>
+              <input id="s3-company" type="text" value={data.companyName} onChange={e => update({ companyName: e.target.value })} placeholder="Acme Inc." className={inputCls} />
             </div>
-
-            {/* Email */}
             <div>
-              <label
-                htmlFor="intake-email"
-                className="text-sm font-semibold text-[#1A1A1A] dark:text-cream mb-2 block"
-              >
-                Work Email <span className="text-red-400">*</span>
-              </label>
-              <input
-                id="intake-email"
-                type="email"
-                value={data.email}
-                onChange={(e) => update({ email: e.target.value })}
-                placeholder="you@company.com"
-                className="w-full bg-white dark:bg-warm-800 border border-[#E5E2D9] dark:border-warm-700 rounded-xl px-4 py-3 text-sm text-[#1A1A1A] dark:text-cream placeholder:text-[#8C7A6B]/60 dark:placeholder:text-grey-500 focus:outline-none focus:border-[#7A8B7B] transition-colors"
-              />
+              <label htmlFor="full-name" className="text-sm font-semibold text-[#1A1A1A] dark:text-cream mb-2 block">Full Name <span className="text-red-400">*</span></label>
+              <input id="full-name" type="text" value={data.fullName} onChange={e => update({ fullName: e.target.value })} placeholder="Derrick Odiwuor" className={inputCls} />
             </div>
-
-            {/* Admin access toggle */}
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <div
-                onClick={() => update({ hasAccess: !data.hasAccess })}
-                className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
-                  data.hasAccess
-                    ? "bg-[#7A8B7B]"
-                    : "bg-[#E5E2D9] dark:bg-warm-700"
-                }`}
-              >
-                <div
-                  className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-200 ${
-                    data.hasAccess ? "left-[22px]" : "left-0.5"
-                  }`}
-                />
+            <div>
+              <label htmlFor="work-email" className="text-sm font-semibold text-[#1A1A1A] dark:text-cream mb-2 block">Work Email <span className="text-red-400">*</span></label>
+              <input id="work-email" type="email" value={data.workEmail} onChange={e => update({ workEmail: e.target.value })} placeholder="you@company.com" className={inputCls} />
+            </div>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <div onClick={() => update({ hasAdminCredentialsReady: !data.hasAdminCredentialsReady })}
+                className={`relative w-11 h-6 rounded-full transition-colors ${data.hasAdminCredentialsReady ? "bg-[#7A8B7B]" : "bg-[#E5E2D9] dark:bg-warm-700"}`}>
+                <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-all ${data.hasAdminCredentialsReady ? "left-[22px]" : "left-0.5"}`} />
               </div>
-              <span className="text-sm text-[#5A5852] dark:text-grey-300">
-                I am ready with admin access / credentials
-              </span>
+              <span className="text-sm text-[#5A5852] dark:text-grey-300">Admin access / credentials are ready</span>
             </label>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Error */}
-      {error && (
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="mt-4 text-sm text-red-500 dark:text-red-400 text-center"
-        >
-          {error}
-        </motion.p>
-      )}
+      {error && <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 text-sm text-red-500 dark:text-red-400 text-center">{error}</motion.p>}
 
-      {/* Navigation */}
       <div className="mt-8 flex items-center justify-between gap-4">
         {step > 1 ? (
-          <button
-            type="button"
-            onClick={() => setStep((s) => (s - 1) as Step)}
-            className="px-5 py-3 rounded-xl border border-[#E5E2D9] dark:border-warm-700 text-sm font-medium text-[#5A5852] dark:text-grey-300 hover:border-[#7A8B7B]/40 transition-colors"
-          >
-            ← Back
-          </button>
-        ) : (
-          <div />
-        )}
-
+          <button type="button" onClick={() => setStep(s => (s - 1) as Step)}
+            className="px-5 py-3 rounded-xl border border-[#E5E2D9] dark:border-warm-700 text-sm font-medium text-[#5A5852] dark:text-grey-300 hover:border-[#7A8B7B]/40 transition-colors">← Back</button>
+        ) : <div />}
         {step < 3 ? (
-          <button
-            type="button"
-            disabled={!canProceed()}
-            onClick={() => setStep((s) => (s + 1) as Step)}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#1A1A1A] dark:bg-warm-100 text-white dark:text-warm-900 text-sm font-semibold transition-all hover:bg-[#333] dark:hover:bg-warm-200 disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            Continue
-            <ChevronRight className="w-4 h-4" />
+          <button type="button" disabled={!ok() || submitting} onClick={() => setStep(s => (s + 1) as Step)}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#1A1A1A] dark:bg-warm-100 text-white dark:text-warm-900 text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#333] transition-all">
+            Continue <ChevronRight className="w-4 h-4" />
           </button>
         ) : (
-          <button
-            type="button"
-            disabled={!canProceed() || submitting}
-            onClick={handleSubmit}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#1A1A1A] dark:bg-warm-100 text-white dark:text-warm-900 text-sm font-semibold transition-all hover:bg-[#333] dark:hover:bg-warm-200 disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            {submitting ? (
-              <>
-                <span className="animate-spin inline-block w-4 h-4 border-2 border-white/30 border-t-white dark:border-warm-900/30 dark:border-t-warm-900 rounded-full" />
-                Submitting...
-              </>
-            ) : (
-              <>
-                Continue to Select Time
-                <ChevronRight className="w-4 h-4" />
-              </>
-            )}
+          <button type="button" disabled={!ok() || submitting} onClick={submit}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#1A1A1A] dark:bg-warm-100 text-white dark:text-warm-900 text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#333] transition-all">
+            {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Submitting…</> : <>Submit Application <ChevronRight className="w-4 h-4" /></>}
           </button>
         )}
       </div>
