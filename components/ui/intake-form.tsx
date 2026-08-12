@@ -66,7 +66,7 @@ export function IntakeForm({ onComplete }: IntakeFormProps) {
 
       const res = await fetch("/api/consulting/submit", { method: "POST", body: fd });
       const body = await res.json();
-      if (!res.ok) throw new Error(body.message || "Submission failed");
+      if (!res.ok) throw new Error(body.detail ? `${body.message}: ${JSON.stringify(body.detail)}` : body.message || "Submission failed");
       setSubmitted(true);
       onComplete?.(body.clientId, body.dashboardUrl);
     } catch (e) { setError(e instanceof Error ? e.message : "Something went wrong."); }
