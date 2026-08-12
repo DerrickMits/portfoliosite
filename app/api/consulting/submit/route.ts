@@ -12,20 +12,13 @@ function getBaseUrl() {
 
 function coerceFormData(rawBody: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = { ...rawBody };
-
-  // Arrays arrive as JSON strings from FormData
   if (typeof out.currentTools === "string") {
     try { out.currentTools = JSON.parse(out.currentTools); } catch { out.currentTools = []; }
   }
-
-  // Booleans arrive as "true"/"false" strings from FormData
   if (typeof out.hasAdminCredentialsReady === "string") {
     out.hasAdminCredentialsReady = out.hasAdminCredentialsReady === "true";
   }
-
-  // Empty optional strings → undefined so Zod optional fields pass
   if (out.manualTaskDescription === "") out.manualTaskDescription = undefined;
-
   return out;
 }
 
@@ -49,7 +42,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ status: "error", message: "Invalid request" }, { status: 400 });
   }
 
-  // Fix FormData string-coercion issues before Zod validation
   const body = coerceFormData(rawBody);
 
   const parsed = intakeSchema.safeParse(body);
@@ -62,20 +54,20 @@ export async function POST(request: Request) {
 
   const data = parsed.data;
 
-  // Upload files using a temp id for the storage path
+  // Upload files
   const tempId = `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
-  const supabaseClient = getSupabase() as any;
+  const sb = getSupabase() as any;
   const fileUrls: string[] = [];
   for (const file of files) {
     const path = `client-assets/${tempId}/${Date.now()}-${file.name}`;
-    const { error } = await supabaseClient.storage.from("client-assets").upload(path, file, { contentType: file.type });
+    const { error } = await sb.storage.from("client-assets").upload(path, file, { contentType: file.type });
     if (!error) {
-      const { data: urlData } = supabaseClient.storage.from("client-assets").getPublicUrl(path);
+      const { data: urlData } = sb.storage.from("client-assets").getPublicUrl(path);
       fileUrls.push(urlData.publicUrl);
     }
   }
 
-  // Insert into DB — let Supabase auto-generate the UUID id
+  // Insert into DB
   const { data: record, error: dbError } = await (getSupabase() as any)
     .from("clients")
     .insert({
@@ -89,18 +81,21 @@ export async function POST(request: Request) {
       work_email: data.workEmail,
       has_admin_credentials_ready: data.hasAdminCredentialsReady,
       status: "PENDING",
+      file_urls: fileUrls,
     })
     .select()
     .single();
 
   if (dbError || !record) {
-    console.error("Supabase insert error:", dbError);
-    return NextResponse.json({ status: "error", message: "Failed to save. Try again." }, { status: 500 });
+    console.error("Supabase insert error details:", JSON.stringify(dbError));
+    return NextResponse.json(
+      { status: "error", message: "Failed to save. Try again.", detail: dbError ? { code: dbError.code, message: dbError.message, details: dbError.details, hint: dbError.hint } : "No record returned" },
+      { status: 500 }
+    );
   }
 
-  const clientId = (record as any).id;
+  const clientId = record.id;
 
-  // Send emails (non-blocking)
   const webhookPayload = {
     clientId,
     companyName: data.companyName,
@@ -117,7 +112,6 @@ export async function POST(request: Request) {
   sendClientConfirmationEmail(clientId, data.fullName, data.workEmail).catch(() => {});
   sendAdminNotificationEmail(webhookPayload).catch(() => {});
 
-  // Make.com webhook (non-blocking)
   const makeUrl = process.env.MAKE_COM_WEBHOOK_URL;
   if (makeUrl) {
     fetch(makeUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(webhookPayload) }).catch(() => {});
