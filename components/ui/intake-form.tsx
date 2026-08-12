@@ -68,10 +68,13 @@ export function IntakeForm({ onComplete }: IntakeFormProps) {
  let body: any = {};
  try { body = await res.json(); } catch { body = {}; }
  if (!res.ok) throw new Error(body.detail ? `${body.message}: ${JSON.stringify(body.detail)}` : body.message || "Submission failed");
-      const url = new URL("https://calendly.com/derrickodiwuor/30min");
-      url.searchParams.set("name", data.fullName);
-      url.searchParams.set("email", data.workEmail);
-      window.location.href = url.toString();
+      setSubmitted(true);
+      setTimeout(() => {
+        const url = new URL("https://calendly.com/derrickodiwuor/30min");
+        url.searchParams.set("name", data.fullName);
+        url.searchParams.set("email", data.workEmail);
+        window.location.href = url.toString();
+      }, 1500);
     } catch (e) { setError(e instanceof Error ? e.message : "Something went wrong."); }
     finally { setSubmitting(false); }
   };
