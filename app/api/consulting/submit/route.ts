@@ -44,7 +44,6 @@ export async function POST(request: Request) {
     }
 
     const body = coerceFormData(rawBody);
-
     const parsed = intakeSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
@@ -55,29 +54,20 @@ export async function POST(request: Request) {
 
     const data = parsed.data;
 
-    // Warm up Supabase connection early to fail fast
-    let supabaseClient: any;
-    try {
-      supabaseClient = getSupabase();
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Supabase not configured";
-      console.error("Supabase init error:", msg);
-      return NextResponse.json({ status: "error", message: msg }, { status: 500 });
-    }
-
     // Upload files
     const tempId = `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+    const sb = getSupabase() as any;
     const fileUrls: string[] = [];
     for (const file of files) {
       const path = `client-assets/${tempId}/${Date.now()}-${file.name}`;
-      const { error } = await supabaseClient.storage.from("client-assets").upload(path, file, { contentType: file.type });
+      const { error } = await sb.storage.from("client-assets").upload(path, file, { contentType: file.type });
       if (!error) {
-        const { data: urlData } = supabaseClient.storage.from("client-assets").getPublicUrl(path);
+        const { data: urlData } = sb.storage.from("client-assets").getPublicUrl(path);
         fileUrls.push(urlData.publicUrl);
       }
     }
 
-    // Insert into DB
+    // Insert into Supabase
     const { data: record, error: dbError } = await (getSupabase() as any)
       .from("clients")
       .insert({
@@ -106,7 +96,30 @@ export async function POST(request: Request) {
 
     const clientId = record.id;
 
-    // Emails + webhook (non-blocking)
+    // Also save lead to Redis for the check-booking cron to find
+    try {
+      const redisUrl = process.env.STORAGE_REDIS_URL;
+      if (redisUrl) {
+        const Redis = (await import("ioredis")).default;
+        const redis = new Redis(redisUrl);
+        const leadKey = `consulting:lead:${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        const leadData = {
+          name: data.fullName,
+          email: data.workEmail,
+          project_details: data.projectScope,
+          submittedAt: new Date().toISOString(),
+          checked: false,
+          booked: false,
+          clientId,
+        };
+        await redis.set(leadKey, JSON.stringify(leadData));
+        await redis.quit();
+      }
+    } catch (redisErr) {
+      console.error("Redis save error (non-blocking):", redisErr);
+    }
+
+    // Send emails + webhook (non-blocking)
     const webhookPayload = {
       clientId, companyName: data.companyName, fullName: data.fullName,
       email: data.workEmail, projectScope: data.projectScope,
@@ -119,8 +132,6 @@ export async function POST(request: Request) {
     if (makeUrl) {
       fetch(makeUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(webhookPayload) }).catch(() => {});
     }
-
-    return NextResponse.json({ status: "success", clientId, dashboardUrl: `${getBaseUrl()}/onboarding/${clientId}` });
 
   } catch (err) {
     console.error("Submit route unhandled error:", err);

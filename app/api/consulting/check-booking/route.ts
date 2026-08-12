@@ -5,7 +5,6 @@ import nodemailer from "nodemailer";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// --- Lazy Redis init (ioredis handles redis:// URLs natively) ---
 let _redis: Redis | null = null;
 function getRedis(): Redis {
   if (!_redis) {
@@ -20,6 +19,7 @@ const CALENDLY_TOKEN = process.env.CALENDLY_TOKEN ?? "";
 const CALENDLY_USERNAME = "derrickodiwuor";
 const CRON_SECRET = process.env.CRON_SECRET || "";
 const FIFTEEN_MIN = 15 * 60 * 1000;
+const ABACUS_API_KEY = process.env.ABACUS_API_KEY ?? "";
 
 interface LeadRecord {
   name: string;
@@ -28,6 +28,7 @@ interface LeadRecord {
   submittedAt: string;
   checked: boolean;
   booked: boolean;
+  clientId?: string;
 }
 
 async function checkCalendlyBooking(email: string): Promise<boolean> {
@@ -41,28 +42,111 @@ async function checkCalendlyBooking(email: string): Promise<boolean> {
   return Array.isArray(data.collection) && data.collection.length > 0;
 }
 
+async function generateFollowUpWithAbacus(lead: LeadRecord): Promise<string> {
+  if (!ABACUS_API_KEY) {
+    return buildFallbackEmail(lead);
+  }
+
+  const prompt = `Write a short, friendly follow-up email from Derrick Odiwuor (Operations & AI Automation Architect) to ${lead.name}.
+
+CONTEXT: ${lead.name} submitted this inquiry: "${lead.project_details}" but hasn't booked a 30-min setup sprint consultation yet.
+
+RULES:
+- Warm, personal tone — like a real person typing, not a marketing robot
+- Reference their project briefly (1 line) to show you actually read it
+- Gently remind them to book a slot — no pressure, just helpful
+- Include Calendly link: https://calendly.com/derrickodiwuor/30min
+- Sign off as Derrick Odiwuor
+- Max 120 words
+- 1 emoji max, if any`;
+
+  try {
+    const res = await fetch("https://api.abacus.ai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${ABACUS_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: "You write warm, professional follow-up emails for a business consultant. Short, genuine, no fluff." },
+          { role: "user", content: prompt },
+        ],
+        max_tokens: 250,
+        temperature: 0.7,
+      }),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => "");
+      console.error(`Abacus AI error ${res.status}: ${errText}`);
+      return buildFallbackEmail(lead);
+    }
+
+    const json = await res.json();
+    const content = json?.choices?.[0]?.message?.content?.trim();
+    if (!content) return buildFallbackEmail(lead);
+    return content;
+  } catch (err) {
+    console.error("Abacus AI request failed:", err);
+    return buildFallbackEmail(lead);
+  }
+}
+
+function buildFallbackEmail(lead: LeadRecord): string {
+  return `Hey ${lead.name.split(" ")[0]},
+
+Just popping in — I saw you submitted details about your project a little while back and wanted to make sure you had a chance to grab a slot.
+
+If the timing still works, here's my calendar: https://calendly.com/${CALENDLY_USERNAME}/30min
+
+No rush at all, just didn't want this to slip through the cracks.
+
+Best,
+Derrick Odiwuor`;
+}
+
 async function sendFollowUpEmail(lead: LeadRecord) {
   const smtpUser = process.env.SMTP_USER;
   const smtpPass = process.env.SMTP_PASS;
-  if (!smtpUser || !smtpPass) return;
+  if (!smtpUser || !smtpPass) {
+    console.error("SMTP not configured — skipping email");
+    return;
+  }
   const smtpFrom = process.env.SMTP_FROM || smtpUser;
+
+  const emailBody = await generateFollowUpWithAbacus(lead);
+
+  // If AI returned a subject line, use it; otherwise fallback
+  let subject: string;
+  let body: string;
+  const firstLine = emailBody.split("\n")[0]?.trim() ?? "";
+  if (/^(subject|re):/i.test(firstLine)) {
+    subject = firstLine.replace(/^(subject|re):\s*/i, "").trim();
+    body = emailBody.split("\n").slice(1).join("\n").trim();
+  } else {
+    subject = `Still interested in your setup sprint, ${lead.name.split(" ")[0]}?`;
+    body = emailBody;
+  }
+
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: { user: smtpUser, pass: smtpPass },
   });
+
   await transporter.sendMail({
     from: `"Derrick Odiwuor" <${smtpFrom}>`,
     to: lead.email,
-    subject: `Quick follow-up regarding your project, ${lead.name}`,
-    text: `Hi ${lead.name},\n\nI saw you submitted details about '${lead.project_details}' but haven't locked in a time on my calendar yet.\n\nIf you'd still like to chat, feel free to pick a convenient slot here:\nhttps://calendly.com/${CALENDLY_USERNAME}/30min\n\nLooking forward to connecting!\n\nBest regards,\nDerrick Odiwuor`,
+    subject,
+    text: body,
   });
 }
 
 export async function GET(_req: Request) {
   let searchParams: URLSearchParams;
   try {
-    const reqUrl = _req.url || "http://localhost/api/consulting/check-booking";
-    searchParams = new URL(reqUrl).searchParams;
+    searchParams = new URL(_req.url).searchParams;
   } catch {
     searchParams = new URLSearchParams();
   }
@@ -71,10 +155,26 @@ export async function GET(_req: Request) {
     return NextResponse.json({ status: "error", message: "Unauthorized" }, { status: 401 });
   }
 
+  // sendReminderOnly=true → skip the Calendly booking check and send to ALL un-checked leads
+  // Useful for testing: hit the endpoint with ?secret=...&sendReminderOnly=true
+  const sendReminderOnly = searchParams.get("sendReminderOnly") === "true";
+
+  // Early env var check
+  const missing: string[] = [];
+  if (!process.env.STORAGE_REDIS_URL) missing.push("STORAGE_REDIS_URL");
+  if (!process.env.SMTP_USER) missing.push("SMTP_USER");
+  if (!process.env.SMTP_PASS) missing.push("SMTP_PASS");
+  if (!process.env.CALENDLY_TOKEN) missing.push("CALENDLY_TOKEN");
+  if (!process.env.ABACUS_API_KEY) missing.push("ABACUS_API_KEY");
+  if (missing.length > 0) {
+    return NextResponse.json({ status: "error", message: "Missing env vars", missing }, { status: 500 });
+  }
+
   const redis = getRedis();
   const now = Date.now();
   let checked = 0;
   let followedUp = 0;
+  let errors: string[] = [];
 
   try {
     const keys = await redis.keys("consulting:lead:*");
@@ -83,26 +183,40 @@ export async function GET(_req: Request) {
       if (!raw || typeof raw !== "string") continue;
       let lead: LeadRecord;
       try { lead = JSON.parse(raw); } catch { continue; }
-      // Skip already-processed leads (idempotency guard)
       if (lead.checked) continue;
 
-      // Only process leads between 15 min and 24 hours old
+      // In normal mode, only process leads 15min–24hrs old
+      // In test mode (sendReminderOnly), process all un-checked leads regardless of age
       const ageMs = now - new Date(lead.submittedAt).getTime();
-      if (ageMs < FIFTEEN_MIN) continue;
-      if (ageMs > 24 * 60 * 60 * 1000) continue;
+      if (!sendReminderOnly) {
+        if (ageMs < FIFTEEN_MIN) continue;
+        if (ageMs > 24 * 60 * 60 * 1000) continue;
+      }
 
       checked++;
       let booked = false;
-      try { booked = await checkCalendlyBooking(lead.email); } catch { /* skip */ }
-      if (!booked) {
-        try { await sendFollowUpEmail(lead); followedUp++; } catch { /* skip */ }
+      if (!sendReminderOnly) {
+        try { booked = await checkCalendlyBooking(lead.email); }
+        catch (err) { errors.push(`Calendly check failed for ${lead.email}: ${err instanceof Error ? err.message : err}`); }
       }
+
+      if (!booked) {
+        try { await sendFollowUpEmail(lead); followedUp++; }
+        catch (err) { errors.push(`Email failed for ${lead.email}: ${err instanceof Error ? err.message : err}`); }
+      }
+
       const updated: LeadRecord = { ...lead, checked: true, booked };
       await redis.set(key, JSON.stringify(updated));
     }
   } catch (err) {
-    console.error("check-booking error:", err);
+    errors.push(err instanceof Error ? err.message : String(err));
   }
 
-  return NextResponse.json({ status: "ok", checked, followedUp, timestamp: new Date().toISOString() });
+  return NextResponse.json({
+    status: "ok",
+    checked,
+    followedUp,
+    errors: errors.length > 0 ? errors : undefined,
+    timestamp: new Date().toISOString(),
+  });
 }
