@@ -10,6 +10,25 @@ function getBaseUrl() {
   return process.env.NEXT_PUBLIC_BASE_URL ?? "https://portfoliosite-pearl-one.vercel.app";
 }
 
+function coerceFormData(rawBody: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = { ...rawBody };
+
+  // Arrays arrive as JSON strings from FormData
+  if (typeof out.currentTools === "string") {
+    try { out.currentTools = JSON.parse(out.currentTools); } catch { out.currentTools = []; }
+  }
+
+  // Booleans arrive as "true"/"false" strings from FormData
+  if (typeof out.hasAdminCredentialsReady === "string") {
+    out.hasAdminCredentialsReady = out.hasAdminCredentialsReady === "true";
+  }
+
+  // Empty optional strings → undefined so Zod optional fields pass
+  if (out.manualTaskDescription === "") out.manualTaskDescription = undefined;
+
+  return out;
+}
+
 export async function POST(request: Request) {
   const contentType = request.headers.get("content-type") ?? "";
   let rawBody: Record<string, unknown>;
@@ -30,7 +49,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ status: "error", message: "Invalid request" }, { status: 400 });
   }
 
-  const parsed = intakeSchema.safeParse(rawBody);
+  // Fix FormData string-coercion issues before Zod validation
+  const body = coerceFormData(rawBody);
+
+  const parsed = intakeSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       { status: "error", message: "Validation failed", errors: parsed.error.issues.map(e => `${e.path.join(".")}: ${e.message}`) },
@@ -76,7 +98,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ status: "error", message: "Failed to save. Try again." }, { status: 500 });
   }
 
-  const clientId = record.id;
+  const clientId = (record as any).id;
 
   // Send emails (non-blocking)
   const webhookPayload = {
