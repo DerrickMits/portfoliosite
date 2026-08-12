@@ -91,7 +91,7 @@ export function IntakeForm({ onComplete }: IntakeFormProps) {
       </div>
       <h3 className="text-2xl font-display font-bold text-[#1A1A1A] dark:text-cream mb-2">Application received</h3>
       <p className="text-[#5A5852] dark:text-grey-300 max-w-md mx-auto">
-        We\'ll review your details and reach out within 24 hours to schedule your Setup Sprint.</p>
+        We'll review your details and reach out within 24 hours to schedule your Setup Sprint.</p>
     </motion.div>
   );
 
