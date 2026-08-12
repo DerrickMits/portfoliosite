@@ -89,21 +89,21 @@ export async function POST(request: Request) {
     if (dbError || !record) {
       console.error("Supabase insert error:", JSON.stringify(dbError));
       return NextResponse.json(
-        { status: "error", message: "Failed to save.", detail: dbError ? { code: dbError.code, message: dbError.message, details: dbError.details, hint: dbError.hint } : "No record" },
+        { status: "error", message: "Failed to save.", detail: dbError ? { code: dbError.code, message: dbError.message } : "No record" },
         { status: 500 }
       );
     }
 
     const clientId = record.id;
 
-    // Also save lead to Redis for the check-booking cron to find
+    // Save lead to Redis for the check-booking cron
     try {
       const redisUrl = process.env.STORAGE_REDIS_URL;
       if (redisUrl) {
         const Redis = (await import("ioredis")).default;
         const redis = new Redis(redisUrl);
         const leadKey = `consulting:lead:${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-        const leadData = {
+        await redis.set(leadKey, JSON.stringify({
           name: data.fullName,
           email: data.workEmail,
           project_details: data.projectScope,
@@ -111,8 +111,7 @@ export async function POST(request: Request) {
           checked: false,
           booked: false,
           clientId,
-        };
-        await redis.set(leadKey, JSON.stringify(leadData));
+        }));
         await redis.quit();
       }
     } catch (redisErr) {
@@ -132,6 +131,8 @@ export async function POST(request: Request) {
     if (makeUrl) {
       fetch(makeUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(webhookPayload) }).catch(() => {});
     }
+
+    return NextResponse.json({ status: "success", clientId, dashboardUrl: `${getBaseUrl()}/onboarding/${clientId}` });
 
   } catch (err) {
     console.error("Submit route unhandled error:", err);

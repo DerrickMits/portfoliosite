@@ -65,8 +65,9 @@ export function IntakeForm({ onComplete }: IntakeFormProps) {
       files.forEach(f => fd.append("files", f as Blob));
 
       const res = await fetch("/api/consulting/submit", { method: "POST", body: fd });
-      const body = await res.json();
-      if (!res.ok) throw new Error(body.detail ? `${body.message}: ${JSON.stringify(body.detail)}` : body.message || "Submission failed");
+ let body: any = {};
+ try { body = await res.json(); } catch { body = {}; }
+ if (!res.ok) throw new Error(body.detail ? `${body.message}: ${JSON.stringify(body.detail)}` : body.message || "Submission failed");
       const url = new URL("https://calendly.com/derrickodiwuor/30min");
       url.searchParams.set("name", data.fullName);
       url.searchParams.set("email", data.workEmail);
