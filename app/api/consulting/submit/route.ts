@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { intakeSchema } from "@/lib/validation";
+import { sendClientConfirmationEmail, sendAdminNotificationEmail } from "@/lib/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -138,6 +139,37 @@ export async function POST(request: Request) {
           submittedAt: new Date().toISOString(),
         }),
       }).catch(() => {});
+    }
+
+    // Send personalized confirmation email to client (Gemini-generated)
+    try {
+      await sendClientConfirmationEmail(clientId, data.fullName, data.workEmail, data);
+      console.log("[Submit] Client confirmation email sent");
+    } catch (emailErr) {
+      console.error("[Submit] Failed to send client confirmation email:", emailErr);
+    }
+
+    // Send personalized admin notification (Gemini-generated)
+    try {
+      await sendAdminNotificationEmail(
+        {
+          clientId,
+          companyName: data.companyName,
+          fullName: data.fullName,
+          email: data.workEmail,
+          projectScope: data.projectScope,
+          crmSetup: data.crmSetup,
+          primaryBottleneck: data.primaryBottleneck,
+          currentTools: data.currentTools,
+          fileUrls,
+          submittedAt: new Date().toISOString(),
+        },
+        data,
+        clientId
+      );
+      console.log("[Submit] Admin notification email sent");
+    } catch (emailErr) {
+      console.error("[Submit] Failed to send admin notification:", emailErr);
     }
 
     // Build Calendly redirect URL with pre-filled name + email
