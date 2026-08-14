@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
-import { Menu, X, Sparkles, ChevronDown, ArrowUpRight } from "lucide-react";
+import { Menu, X, ChevronDown, ArrowUpRight } from "lucide-react";
 import ToggleTheme from "@/components/ui/toggle-theme";
 
 type NavLink = {
@@ -220,7 +220,7 @@ export default function Navbar() {
               className="hidden md:inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold text-warm-900 dark:text-warm-50 bg-gradient-to-r from-amber-300 to-violet-300 hover:from-amber-200 hover:to-violet-200 shadow-sm hover:shadow duration-200"
               style={{ transitionProperty: "background-image, box-shadow, color" }}
             >
-              <Sparkles className="w-4 h-4" />
+              <img src="/elara-avatar.png" alt="Elara" className="w-5 h-5 object-cover rounded-full" />
               {AI_ASSISTANT_LABEL}
               <ArrowUpRight className="w-3.5 h-3.5" />
             </a>
@@ -300,7 +300,7 @@ export default function Navbar() {
                       onClick={closeMobile}
                       className="mb-3 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-full text-base font-semibold text-warm-900 dark:text-warm-50 bg-gradient-to-r from-amber-300 to-violet-300 shadow-sm"
                     >
-                      <Sparkles className="w-4 h-4" />
+                      <img src="/elara-avatar.png" alt="Elara" className="w-5 h-5 object-cover rounded-full" />
                       {AI_ASSISTANT_LABEL}
                       <ArrowUpRight className="w-4 h-4" />
                     </a>
@@ -343,7 +343,7 @@ export default function Navbar() {
                     onClick={closeMobile}
                     className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-full text-base font-semibold text-warm-900 dark:text-warm-50 bg-gradient-to-r from-amber-300 to-violet-300 shadow-sm"
                   >
-                    <Sparkles className="w-4 h-4" />
+                    <img src="/elara-avatar.png" alt="Elara" className="w-5 h-5 object-cover rounded-full" />
                     {AI_ASSISTANT_LABEL}
                     <ArrowUpRight className="w-4 h-4" />
                   </a>
