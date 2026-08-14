@@ -151,7 +151,7 @@ export default function Navbar() {
                     ? { className: "px-3 py-2 rounded-lg text-sm font-bold bg-gradient-to-r from-amber-300/30 to-violet-300/30 text-warm-900 dark:text-warm-100 hover:from-amber-300/50 hover:to-violet-300/50 transition-colors" }
                     : { className: "px-3 py-2 rounded-lg text-sm font-medium text-warm-600 dark:text-warm-400 hover:text-warm-900 dark:hover:text-warm-100 hover:bg-warm-100 dark:hover:bg-warm-800 transition-colors" })}
                 >
-                  {("external" in link) && link.external ? <span className="inline-flex items-center gap-1.5">{link.label}<Sparkles className="w-3.5 h-3.5" /></span> : link.label}
+                  {("external" in link) && link.external ? <span className="inline-flex items-center gap-1.5">{link.label}</span> : link.label}
                 </a>
               ))}
 
@@ -285,7 +285,6 @@ export default function Navbar() {
                         }
                       >
                         {link.label}
-                        {isExt && <Sparkles className="w-4 h-4" />}
                       </a>
                     );
                   })}
