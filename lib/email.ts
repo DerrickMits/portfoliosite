@@ -130,7 +130,7 @@ REQUIREMENTS:
 - Max 250 words
 - Return ONLY a JSON object with: subject, html, text`;
 
-  let subject = `��🔔 New Consulting Application — ${data.companyName}`;
+  let subject = `New Consulting Application — ${data.companyName}`;
   let html = `
     <h3>New Consulting Application</h3>
     <p><strong>Client ID:</strong> ${clientId}</p>
@@ -224,7 +224,7 @@ export async function sendAdminNotificationEmail(payload: Record<string, unknown
   const transporter = getTransporter();
   if (!transporter) return;
 
-  let subject = `🔔 New Consulting Application — ${payload.companyName}`;
+  let subject = `New Consulting Application — ${payload.companyName}`;
   let html = `<h3>New Consulting Application</h3><pre>${JSON.stringify(payload, null, 2)}</pre>`;
   let text = `New lead submitted:\n\n${JSON.stringify(payload, null, 2)}`;
 
