@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles, X } from "lucide-react";
+import { X } from "lucide-react";
 import AIAssistantChat from "@/components/AIAssistantChat";
 
 /**
@@ -27,8 +27,12 @@ export default function AIAssistantWidget() {
         }}
         className="fixed bottom-6 right-6 z-30 group flex items-center gap-2 h-12 pl-3 pr-4 rounded-full bg-gradient-to-br from-amber-300 to-violet-300 text-warm-900 shadow-[0_12px_30px_-8px_rgba(0,0,0,0.4)] hover:shadow-[0_16px_36px_-10px_rgba(0,0,0,0.5)]"
       >
-        <span className="w-7 h-7 rounded-full bg-white/30 grid place-items-center">
-          {open ? <X className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
+        <span className="w-7 h-7 rounded-full overflow-hidden bg-white/30">
+          {open ? (
+            <X className="w-4 h-4 m-auto" />
+          ) : (
+            <img src="/elara-avatar.png" alt="Elara" className="w-full h-full object-cover" />
+          )}
         </span>
         <span className="font-display font-bold text-sm tracking-tight">
           {open ? "Close" : "AI Assistant"}

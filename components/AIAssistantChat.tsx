@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { X, Send, Loader2, Sparkles } from "lucide-react";
+import { X, Send, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -109,8 +109,8 @@ export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
       <aside className="relative pointer-events-auto w-full max-w-md h-full bg-cream dark:bg-warm-900 border-l border-warm-200 dark:border-warm-800 shadow-2xl flex flex-col animate-slide-in-right">
         <header className="flex items-center justify-between px-5 h-16 border-b border-warm-200 dark:border-warm-800">
           <div className="flex items-center gap-2.5">
-            <span className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-300 to-violet-300 grid place-items-center">
-              <Sparkles className="w-4 h-4 text-warm-900" />
+            <span className="w-8 h-8 rounded-full overflow-hidden border border-warm-200">
+              <img src="/elara-avatar.png" alt="Elara" className="w-full h-full object-cover" />
             </span>
             <div>
               <p className="font-display font-bold text-warm-900 dark:text-warm-100 leading-tight">
@@ -136,8 +136,8 @@ export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
         >
           {messages.length === 0 && (
             <div className="text-center pt-10">
-              <span className="inline-block w-12 h-12 rounded-full bg-gradient-to-br from-amber-300 to-violet-300 grid place-items-center mb-4">
-                <Sparkles className="w-6 h-6 text-warm-900" />
+              <span className="inline-block w-12 h-12 rounded-full overflow-hidden border-2 border-warm-200 mb-4">
+                <img src="/elara-avatar.png" alt="Elara" className="w-full h-full object-cover" />
               </span>
               <p className="font-display text-xl font-bold text-warm-900 dark:text-warm-100">
                 Hi, what's the move?
