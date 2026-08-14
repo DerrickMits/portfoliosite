@@ -97,10 +97,7 @@ REQUIREMENTS:
     }
   }
 
-  // Add onboarding portal link
-  const portalUrl = `${baseUrl}/onboarding/{{CLIENT_ID}}`;
-  html += `<p><a href="${portalUrl}">View your onboarding portal →</a></p>`;
-  text += `\n\nView your onboarding portal: ${portalUrl}`;
+  // Removed onboarding portal link as requested
 
   return { subject, html, text };
 }
@@ -130,13 +127,35 @@ REQUIREMENTS:
 - Professional, scannable format
 - Highlight the key context (CRM, bottleneck, tools) for quick prep
 - Flag if admin credentials are ready (means faster start)
-- Include Client ID and onboarding portal link
 - Max 250 words
 - Return ONLY a JSON object with: subject, html, text`;
 
-  let subject = `🔔 New Consulting Application — ${data.companyName}`;
-  let html = `<h3>New Consulting Application</h3><p><strong>Client ID:</strong> ${clientId}</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
-  let text = `New Consulting Application\nClient ID: ${clientId}\n\n${JSON.stringify(data, null, 2)}`;
+  let subject = `��🔔 New Consulting Application — ${data.companyName}`;
+  let html = `
+    <h3>New Consulting Application</h3>
+    <p><strong>Client ID:</strong> ${clientId}</p>
+    <p><strong>Company:</strong> ${data.companyName}</p>
+    <p><strong>Contact:</strong> ${data.fullName} (${data.workEmail})</p>
+    <p><strong>Project Scope:</strong> ${data.projectScope}</p>
+    <p><strong>Current CRM:</strong> ${data.crmSetup}</p>
+    <p><strong>Primary Bottleneck:</strong> ${data.primaryBottleneck}</p>
+    <p><strong>Current Tools:</strong> ${data.currentTools.length > 0 ? data.currentTools.join(', ') : 'None specified'}</p>
+    <p><strong>Manual Task to Automate:</strong> ${data.manualTaskDescription || 'Not specified'}</p>
+    <p><strong>Admin Credentials Ready:</strong> ${data.hasAdminCredentialsReady ? 'Yes' : 'No'}</p>
+  `;
+  let text = `
+New Consulting Application
+
+Client ID: ${clientId}
+Company: ${data.companyName}
+Contact: ${data.fullName} (${data.workEmail})
+Project Scope: ${data.projectScope}
+Current CRM: ${data.crmSetup}
+Primary Bottleneck: ${data.primaryBottleneck}
+Current Tools: ${data.currentTools.length > 0 ? data.currentTools.join(', ') : 'None specified'}
+Manual Task to Automate: ${data.manualTaskDescription || 'Not specified'}
+Admin Credentials Ready: ${data.hasAdminCredentialsReady ? 'Yes' : 'No'}
+  `.trim();
 
   if (geminiKey) {
     try {
@@ -172,9 +191,7 @@ REQUIREMENTS:
     }
   }
 
-  const portalUrl = `${baseUrl}/onboarding/${clientId}`;
-  html += `<p><a href="${portalUrl}">Open onboarding portal →</a></p>`;
-  text += `\n\nOpen onboarding portal: ${portalUrl}`;
+  // Removed onboarding portal link as requested
 
   return { subject, html, text };
 }
@@ -184,14 +201,14 @@ export async function sendClientConfirmationEmail(clientId: string, clientName: 
   if (!transporter) return;
 
   let subject = `Welcome, ${clientName} — your Setup Sprint is being prepared`;
-  let html = `<p>We've received your application. We'll reach out within 24 hours.</p><p><a href="${process.env.NEXT_PUBLIC_BASE_URL ?? "https://portfoliosite-pearl-one.vercel.app"}/onboarding/${clientId}">View your onboarding portal →</a></p>`;
-  let text = `We've received your application. We'll reach out within 24 hours.\n\nView your onboarding portal: ${process.env.NEXT_PUBLIC_BASE_URL ?? "https://portfoliosite-pearl-one.vercel.app"}/onboarding/${clientId}`;
+  let html = `<p>We've received your application. We'll reach out within 24 hours.</p>`;
+  let text = `We've received your application. We'll reach out within 24 hours.`;
 
   if (formData) {
     const generated = await generateClientConfirmationEmail(formData);
     subject = generated.subject;
-    html = generated.html.replace("{{CLIENT_ID}}", clientId);
-    text = generated.text.replace("{{CLIENT_ID}}", clientId);
+    html = generated.html;
+    text = generated.text;
   }
 
   await transporter.sendMail({
