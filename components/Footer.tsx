@@ -132,7 +132,7 @@ export default function Footer() {
           transition={{ duration: 0.5, delay: 0.3 }}
         >
           <p className="text-zinc-500 text-sm">
-            Built with Next.js, hosted on Vercel. Designed for clarity and speed.
+            Designed for clarity and speed.
           </p>
         </motion.div>
       </div>
