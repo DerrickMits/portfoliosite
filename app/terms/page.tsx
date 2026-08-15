@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <main className="min-h-screen bg-[#FDFBF7] text-zinc-900 antialiased">
+    <main className="min-h-screen bg-[#FDFBF7] dark:bg-deep text-zinc-900 antialiased">
       {/* Hero Section */}
       <section className="border-b border-[#E4E2DC] bg-[#F4F2ED]">
         <div className="max-w-4xl mx-auto px-6 py-16 md:py-24">
@@ -42,11 +42,11 @@ export default function TermsPage() {
       {/* Content Section */}
       <section className="py-16 md:py-24">
         <div className="max-w-3xl mx-auto px-6">
-          <article className="prose prose-zinc max-w-none prose-img:rounded-xl prose-headings:text-zinc-900 prose-body:text-zinc-600 prose-links:text-zinc-900 prose-bold:text-zinc-900 prose-code:text-zinc-900 prose-pre:bg-[#F4F2ED] prose-pre:code:text-zinc-900 prose-hr:border-[#E4E2DC] prose-quote:border-l-[#E4E2DC] prose-ul:marker:text-[#E4E2DC]">
+          <article className="prose prose-zinc max-w-none dark:prose-invert prose-img:rounded-xl prose-headings:text-zinc-900 dark:prose-headings:text-warm-100 prose-body:text-zinc-600 dark:prose-body:text-warm-400 prose-links:text-zinc-900 dark:prose-links:text-amber-400 prose-bold:text-zinc-900 dark:prose-bold:text-warm-100 prose-code:text-zinc-900 dark:prose-code:text-warm-100 prose-pre:bg-[#F4F2ED] dark:prose-pre:bg-warm-800 prose-pre:code:text-zinc-900 dark:prose-pre:code:text-warm-100 prose-hr:border-[#E4E2DC] dark:prose-hr:border-warm-700 prose-quote:border-l-[#E4E2DC] dark:prose-quote:border-l-warm-700 prose-ul:marker:text-[#E4E2DC] dark:prose-ul:marker:text-warm-500">
             <section className="mb-12 pb-8 border-b border-[#E4E2DC]">
               <h2 className="text-2xl font-bold text-zinc-900 mb-4">1. Acceptance of Terms</h2>
               <p className="text-zinc-600 leading-relaxed mb-4">
-                By accessing or using this website, including our portfolio, article library, resource hub, and consulting services (accessible via <code className="bg-[#E4E2DC] px-1.5 py-0.5 rounded text-sm font-mono">/architect</code>), you agree to be bound by these Terms and Conditions. If you do not agree with any part of these terms, please discontinue use of the site immediately.
+                By accessing or using this website, including our portfolio, article library, resource hub, and consulting services (accessible via <code className="bg-[#E4E2DC] dark:bg-warm-700 px-1.5 py-0.5 rounded text-sm font-mono">/architect</code>), you agree to be bound by these Terms and Conditions. If you do not agree with any part of these terms, please discontinue use of the site immediately.
               </p>
             </section>
 
@@ -68,7 +68,7 @@ export default function TermsPage() {
               </p>
               <ul className="list-disc list-inside space-y-3 text-zinc-600 leading-relaxed">
                 <li>Any implementation of code, API connections, or automation logic is undertaken at your own risk.</li>
-                <li>Engagement in consulting sprints or discovery calls via the <code className="bg-[#E4E2DC] px-1.5 py-0.5 rounded text-sm font-mono">/architect</code> portal does not create an ongoing fiduciary liability beyond the terms outlined in a dedicated Statement of Work (SOW).</li>
+                <li>Engagement in consulting sprints or discovery calls via the <code className="bg-[#E4E2DC] dark:bg-warm-700 px-1.5 py-0.5 rounded text-sm font-mono">/architect</code> portal does not create an ongoing fiduciary liability beyond the terms outlined in a dedicated Statement of Work (SOW).</li>
               </ul>
             </section>
 
@@ -107,7 +107,7 @@ export default function TermsPage() {
               </p>
               <Link
                 href="/"
-                className="inline-flex items-center gap-2 text-zinc-900 hover:text-black border-b border-transparent hover:border-zinc-400 transition-colors font-medium"
+                className="inline-flex items-center gap-2 text-zinc-900 dark:text-warm-100 hover:text-zinc-900 dark:hover:text-warm-100 border-b border-transparent dark:border-warm-500 hover:border-zinc-400 dark:hover:border-warm-400 transition-colors font-medium dark:text-warm-100"
               >
                 Return to Homepage →
               </Link>
