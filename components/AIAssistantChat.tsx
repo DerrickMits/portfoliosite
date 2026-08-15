@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { X, Send } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { Spiral } from "@/components/ui/spiral";
 
 /**
  * Embedded assistant chat panel for the portfolio. Streams from the deployed
@@ -182,29 +183,25 @@ export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
                 m.role === "user" ? "flex justify-end" : "flex justify-start"
               }
             >
-              {m.role === "user" ? (
-                <div className="max-w-[85%] sm:max-w-[80%] rounded-2xl rounded-tr-sm px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm bg-warm-900 text-cream dark:bg-warm-100 dark:text-warm-900 whitespace-pre-wrap">
-                  {m.content || ""}
-                </div>
-              ) : (
-                <div className="max-w-[90%] sm:max-w-[85%] rounded-2xl rounded-tl-sm px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 text-warm-800 dark:text-warm-100">
-                  {m.content ? (
-                    <MarkdownChannel content={m.content} />
-                  ) : busy && i === messages.length - 1 ? (
-                    <span className="inline-flex items-center gap-2">
-                      <img src="/elara-avatar.png" alt="Elara" className="w-5 h-5 rounded-full object-cover shrink-0" />
-                      <span className="text-warm-500 text-[10px] sm:text-xs font-medium">Thinking</span>
-                      <span className="flex gap-0.5 items-center">
-                        <span className="w-1 h-1 sm:w-1 sm:h-1 rounded-full bg-amber-400 animate-bounce [animation-delay:0ms]" />
-                        <span className="w-1 h-1 sm:w-1 sm:h-1 rounded-full bg-amber-400 animate-bounce [animation-delay:150ms]" />
-                        <span className="w-1 h-1 sm:w-1 sm:h-1 rounded-full bg-amber-400 animate-bounce [animation-delay:300ms]" />
-                      </span>
-                    </span>
-                  ) : (
-                    ""
-                  )}
-                </div>
-              )}
+              <div
+                className={
+                  m.role === "user"
+                    ? "max-w-[85%] sm:max-w-[80%] rounded-2xl rounded-tr-sm px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm bg-warm-900 text-cream dark:bg-warm-100 dark:text-warm-900 whitespace-pre-wrap"
+                    : "max-w-[90%] sm:max-w-[85%] rounded-2xl rounded-tl-sm px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 text-warm-800 dark:text-warm-100"
+                }
+              >
+                {m.role === "assistant" && m.content ? (
+                  <MarkdownChannel content={m.content} />
+                ) : m.role === "assistant" && !m.content && busy && i === messages.length - 1 ? (
+                  <span className="inline-flex items-center gap-2">
+                    <img src="/elara-avatar.png" alt="Elara" className="w-5 h-5 rounded-full object-cover shrink-0" />
+                    <span className="text-warm-500 text-[10px] sm:text-xs font-medium">Thinking</span>
+                    <Spiral className="text-amber-500 size-3 sm:size-3.5" dots={5} radius={24} />
+                  </span>
+                ) : (
+                  ""
+                )}
+              </div>
             </div>
           ))}
         </div>
