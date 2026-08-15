@@ -196,7 +196,7 @@ export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
                   <span className="inline-flex items-center gap-2">
                     <img src="/elara-avatar.png" alt="Elara" className="w-5 h-5 rounded-full object-cover shrink-0" />
                     <span className="text-warm-500 text-[10px] sm:text-xs font-medium">Thinking</span>
-                    <Spiral className="text-amber-500 size-3 sm:size-3.5" dots={5} radius={24} />
+                    <Spiral className="text-amber-500 size-5 sm:size-6" dots={5} radius={24} />
                   </span>
                 ) : (
                   ""
