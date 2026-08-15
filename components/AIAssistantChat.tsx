@@ -100,53 +100,63 @@ export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 pointer-events-none flex justify-end">
+    <div className="fixed inset-0 z-50 flex justify-end">
+      {/* Backdrop — close on tap */}
       <button
         aria-label="Close assistant"
         onClick={onClose}
-        className="absolute inset-0 bg-deep/50 md:backdrop-blur-[2px] pointer-events-auto"
+        className="absolute inset-0 bg-deep/50 md:backdrop-blur-[2px]"
       />
-      <aside className="relative pointer-events-auto w-full max-w-md h-full bg-cream dark:bg-warm-900 border-l border-warm-200 dark:border-warm-800 shadow-2xl flex flex-col animate-slide-in-right">
-        <header className="flex items-center justify-between px-5 h-16 border-b border-warm-200 dark:border-warm-800">
+
+      {/* Panel — full-bleed on mobile, capped drawer on desktop */}
+      <aside className="relative pointer-events-auto w-full h-full md:max-w-md bg-cream dark:bg-warm-900 md:border-l border-warm-200 dark:border-warm-800 shadow-2xl flex flex-col animate-slide-in-right">
+        {/* Header */}
+        <header className="flex items-center justify-between px-4 sm:px-5 h-14 sm:h-16 border-b border-warm-200 dark:border-warm-800 shrink-0">
           <div className="flex items-center gap-2.5">
-            <span className="w-8 h-8 rounded-full overflow-hidden border border-warm-200">
+            <span className="w-8 h-8 rounded-full overflow-hidden border border-warm-200 shrink-0">
               <img src="/elara-avatar.png" alt="Elara" className="w-full h-full object-cover" />
             </span>
-            <div>
-              <p className="font-display font-bold text-warm-900 dark:text-warm-100 leading-tight">
-                Derrick's AI Assistant
+            <div className="min-w-0">
+              <p className="font-display font-bold text-sm sm:text-base text-warm-900 dark:text-warm-100 leading-tight truncate">
+                Derrick&apos;s AI Assistant
               </p>
-              <p className="text-[11px] text-warm-500 dark:text-warm-400">
-                Grounded on Derrick's portfolio, articles, and blueprints
+              <p className="text-[10px] sm:text-[11px] text-warm-500 dark:text-warm-400 truncate">
+                Grounded on Derrick&apos;s portfolio, articles, and blueprints
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
             aria-label="Close"
-            className="w-9 h-9 rounded-xl hover:bg-warm-100 dark:hover:bg-warm-800 grid place-items-center text-warm-600 dark:text-warm-300"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl hover:bg-warm-100 dark:hover:bg-warm-800 grid place-items-center text-warm-600 dark:text-warm-300 shrink-0"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </header>
 
+        {/* Messages */}
         <div
           ref={scrollRef}
-          className="flex-1 overflow-y-auto px-4 py-5 space-y-4"
+          className="flex-1 overflow-y-auto px-3 sm:px-4 py-4 sm:py-5 space-y-3 sm:space-y-4"
         >
           {messages.length === 0 && (
-            <div className="text-center pt-10">
-              <span className="inline-block w-12 h-12 rounded-full overflow-hidden border-2 border-warm-200 mb-4">
+            <div className="text-center pt-8 sm:pt-10">
+              {/* Avatar */}
+              <span className="inline-block w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 border-warm-200 mb-4 sm:mb-5">
                 <img src="/elara-avatar.png" alt="Elara" className="w-full h-full object-cover" />
               </span>
-              <p className="font-display text-xl font-bold text-warm-900 dark:text-warm-100">
-                Hi, what's the move?
+
+              {/* Greeting */}
+              <p className="font-display text-xl sm:text-2xl font-bold text-warm-900 dark:text-warm-100">
+                Hi, what&apos;s the move?
               </p>
-              <p className="mt-2 text-sm text-warm-500 dark:text-warm-400">
-                Ask about Derrick's career, his articles on The Ledger, or his
+              <p className="mt-2 text-xs sm:text-sm text-warm-500 dark:text-warm-400 max-w-xs mx-auto">
+                Ask about Derrick&apos;s career, his articles on The Ledger, or his
                 downloadable blueprints.
               </p>
-              <div className="mt-6 grid gap-2 text-left">
+
+              {/* Suggestion chips */}
+              <div className="mt-5 sm:mt-6 grid gap-2 text-left max-w-sm mx-auto">
                 {[
                   "What does Derrick do for a living?",
                   "Summarize the Zapier automation guide.",
@@ -155,7 +165,7 @@ export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
                   <button
                     key={s}
                     onClick={() => send(s)}
-                    className="text-sm text-left px-3 py-2 rounded-xl border border-warm-200 dark:border-warm-700 hover:bg-warm-100 dark:hover:bg-warm-800 text-warm-700 dark:text-warm-300 transition-colors"
+                    className="w-full text-left text-xs sm:text-sm px-3 py-2.5 sm:py-2 rounded-xl border border-warm-200 dark:border-warm-700 hover:bg-warm-100 dark:hover:bg-warm-800 text-warm-700 dark:text-warm-300 transition-colors"
                   >
                     {s}
                   </button>
@@ -164,6 +174,7 @@ export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
             </div>
           )}
 
+          {/* Message bubbles */}
           {messages.map((m, i) => (
             <div
               key={i}
@@ -174,8 +185,8 @@ export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
               <div
                 className={
                   m.role === "user"
-                    ? "max-w-[80%] rounded-2xl rounded-tr-sm px-3.5 py-2.5 text-sm bg-warm-900 text-cream dark:bg-warm-100 dark:text-warm-900 whitespace-pre-wrap"
-                    : "max-w-[85%] rounded-2xl rounded-tl-sm px-3.5 py-2.5 text-sm bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 text-warm-800 dark:text-warm-100 prose-chat"
+                    ? "max-w-[85%] sm:max-w-[80%] rounded-2xl rounded-tr-sm px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm bg-warm-900 text-cream dark:bg-warm-100 dark:text-warm-900 whitespace-pre-wrap"
+                    : "max-w-[90%] sm:max-w-[85%] rounded-2xl rounded-tl-sm px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 text-warm-800 dark:text-warm-100 prose-chat"
                 }
               >
                 {m.role === "assistant" &&
@@ -183,8 +194,8 @@ export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
                   <>
                     <MarkdownChannel content={m.content} />
                     {busy && i === messages.length - 1 && !m.content && (
-                      <span className="inline-flex items-center gap-1.5 text-warm-500 text-xs">
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" /> thinking...
+                      <span className="inline-flex items-center gap-1.5 text-warm-500 text-[10px] sm:text-xs">
+                        <Loader2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 animate-spin" /> thinking...
                       </span>
                     )}
                   </>
@@ -196,14 +207,15 @@ export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
           ))}
         </div>
 
+        {/* Input form */}
         <form
-          className="border-t border-warm-200 dark:border-warm-800 p-3"
+          className="border-t border-warm-200 dark:border-warm-800 p-2.5 sm:p-3 shrink-0"
           onSubmit={(e) => {
             e.preventDefault();
             send();
           }}
         >
-          <div className="flex items-end gap-1.5 rounded-2xl bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 pl-4 pr-2 py-1.5 focus-within:border-warm-300 dark:focus-within:border-warm-500 transition-colors">
+          <div className="flex items-end gap-1.5 rounded-2xl bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 pl-3 sm:pl-4 pr-1.5 sm:pr-2 py-1.5 sm:py-1.5 focus-within:border-warm-300 dark:focus-within:border-warm-500 transition-colors">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -215,15 +227,15 @@ export default function AIAssistantChat({ onClose }: { onClose: () => void }) {
               }}
               rows={1}
               placeholder="Ask Derrick's AI Assistant..."
-              className="flex-1 resize-none bg-transparent outline-none text-sm text-warm-900 dark:text-warm-100 placeholder:text-warm-400 py-1.5 px-0 max-h-32"
+              className="flex-1 resize-none bg-transparent outline-none text-xs sm:text-sm text-warm-900 dark:text-warm-100 placeholder:text-warm-400 py-1.5 px-0 max-h-28 sm:max-h-32"
             />
             <button
               type="submit"
               disabled={busy || !input.trim()}
               aria-label="Send"
-              className="w-9 h-9 shrink-0 rounded-xl bg-warm-900 text-cream dark:bg-warm-100 dark:text-warm-900 grid place-items-center disabled:opacity-40 transition-opacity"
+              className="w-8 h-8 sm:w-9 sm:h-9 shrink-0 rounded-xl bg-warm-900 text-cream dark:bg-warm-100 dark:text-warm-900 grid place-items-center disabled:opacity-40 transition-opacity"
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           </div>
         </form>
