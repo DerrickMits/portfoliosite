@@ -19,7 +19,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="border-t border-[#E4E2DC] bg-[#FDFBF7] py-16 md:py-20">
+    <footer className="border-t border-warm-200 dark:border-warm-700 bg-cream dark:bg-deep py-16 md:py-20">
       <div className="max-w-6xl mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16">
           {/* Brand Section */}
@@ -30,13 +30,13 @@ export default function Footer() {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <p className="font-display text-2xl md:text-3xl font-bold text-zinc-900 mb-4">
+            <p className="font-display text-2xl md:text-3xl font-bold text-warm-900 dark:text-warm-100 mb-4">
               Derrick Odiwuor
             </p>
-            <p className="text-zinc-600 leading-relaxed text-base mb-6 max-w-xs">
+            <p className="text-warm-700 dark:text-warm-300 leading-relaxed text-base mb-6 max-w-xs">
               Operations & AI Automation Architect. Building scalable workflows, intelligent automation, and operational infrastructure for modern teams.
             </p>
-            <p className="text-zinc-500 text-sm">
+            <p className="text-warm-500 dark:text-warm-400 text-sm">
               &copy; {currentYear} Derrick Odiwuor. All rights reserved.
             </p>
           </motion.div>
@@ -50,7 +50,7 @@ export default function Footer() {
             transition={{ duration: 0.5, delay: 0.1 }}
             aria-label="Ecosystem navigation"
           >
-            <h3 className="font-semibold text-zinc-900 mb-4 tracking-wide uppercase text-sm">
+            <h3 className="font-semibold text-warm-900 dark:text-warm-100 mb-4 tracking-wide uppercase text-sm">
               Ecosystem
             </h3>
             <ul className="space-y-3" role="list">
@@ -65,13 +65,13 @@ export default function Footer() {
                     href={link.href}
                     target={link.external ? "_blank" : undefined}
                     rel={link.external ? "noopener noreferrer" : undefined}
-                    className="text-zinc-600 hover:text-zinc-900 transition-colors flex items-center gap-2 group"
+                    className="text-warm-600 dark:text-warm-300 hover:text-warm-900 dark:hover:text-warm-100 transition-colors flex items-center gap-2 group"
                     aria-label={link.label + (link.external ? " (opens in new tab)" : "")}
                   >
                     <span className="group-hover:underline">{link.label}</span>
                     {link.external && (
                       <svg
-                        className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-600 transition-colors"
+                        className="w-3.5 h-3.5 text-warm-400 dark:text-warm-500 group-hover:text-warm-600 dark:group-hover:text-warm-300 transition-colors"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -100,7 +100,7 @@ export default function Footer() {
             transition={{ duration: 0.5, delay: 0.2 }}
             aria-label="Legal and compliance"
           >
-            <h3 className="font-semibold text-zinc-900 mb-4 tracking-wide uppercase text-sm">
+            <h3 className="font-semibold text-warm-900 dark:text-warm-100 mb-4 tracking-wide uppercase text-sm">
               Legal & Compliance
             </h3>
             <ul className="space-y-3" role="list">
@@ -113,7 +113,7 @@ export default function Footer() {
                 >
                   <Link
                     href={link.href}
-                    className="text-zinc-600 hover:text-zinc-900 transition-colors group"
+                    className="text-warm-600 dark:text-warm-300 hover:text-warm-900 dark:hover:text-warm-100 transition-colors group"
                   >
                     <span className="group-hover:underline">{link.label}</span>
                   </Link>
@@ -125,13 +125,13 @@ export default function Footer() {
 
         {/* Bottom Divider & Social/Contact */}
         <motion.div
-          className="mt-12 pt-8 border-t border-[#E4E2DC] text-center"
+          className="mt-12 pt-8 border-t border-warm-200 dark:border-warm-700 text-center"
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
-          <p className="text-zinc-500 text-sm">
+          <p className="text-warm-500 dark:text-warm-400 text-sm">
             Designed for clarity and speed.
           </p>
         </motion.div>
