@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { type IntakeFormData } from "./validation";
 
 let _transporter: nodemailer.Transporter | null = null;
 
@@ -15,23 +16,11 @@ function getTransporter() {
   return _transporter;
 }
 
-interface ClientFormData {
-  companyName: string;
-  projectScope: string;
-  crmSetup: string;
-  primaryBottleneck: string;
-  currentTools: string[];
-  manualTaskDescription?: string;
-  fullName: string;
-  workEmail: string;
-  hasAdminCredentialsReady: boolean;
-}
-
 /**
  * Generate a personalized confirmation email for the client using Gemini
  * based on their specific form responses
  */
-export async function generateClientConfirmationEmail(data: ClientFormData): Promise<{ subject: string; html: string; text: string }> {
+export async function generateClientConfirmationEmail(data: IntakeFormData): Promise<{ subject: string; html: string; text: string }> {
   const geminiKey = process.env.GEMINI_API_KEY;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "https://portfoliosite-pearl-one.vercel.app";
   
@@ -105,7 +94,7 @@ REQUIREMENTS:
 /**
  * Generate a personalized admin notification email using Gemini
  */
-export async function generateAdminNotificationEmail(data: ClientFormData, clientId: string): Promise<{ subject: string; html: string; text: string }> {
+export async function generateAdminNotificationEmail(data: IntakeFormData, clientId: string): Promise<{ subject: string; html: string; text: string }> {
   const geminiKey = process.env.GEMINI_API_KEY;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "https://portfoliosite-pearl-one.vercel.app";
   
@@ -196,7 +185,7 @@ Admin Credentials Ready: ${data.hasAdminCredentialsReady ? 'Yes' : 'No'}
   return { subject, html, text };
 }
 
-export async function sendClientConfirmationEmail(clientId: string, clientName: string, email: string, formData?: ClientFormData) {
+export async function sendClientConfirmationEmail(clientId: string, clientName: string, email: string, formData?: IntakeFormData) {
   const transporter = getTransporter();
   if (!transporter) return;
 
@@ -220,7 +209,7 @@ export async function sendClientConfirmationEmail(clientId: string, clientName: 
   });
 }
 
-export async function sendAdminNotificationEmail(payload: Record<string, unknown>, formData?: ClientFormData, clientId?: string) {
+export async function sendAdminNotificationEmail(payload: Record<string, unknown>, formData?: IntakeFormData, clientId?: string) {
   const transporter = getTransporter();
   if (!transporter) return;
 

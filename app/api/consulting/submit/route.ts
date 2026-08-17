@@ -20,6 +20,9 @@ function coerceFormData(rawBody: Record<string, unknown>): Record<string, unknow
   if (typeof out.hasAdminCredentialsReady === "string") {
     out.hasAdminCredentialsReady = out.hasAdminCredentialsReady === "true";
   }
+  if (typeof out.termsAccepted === "string") {
+    out.termsAccepted = out.termsAccepted === "true";
+  }
   if (out.manualTaskDescription === "") out.manualTaskDescription = undefined;
   return out;
 }
@@ -82,6 +85,7 @@ export async function POST(request: Request) {
         full_name: data.fullName,
         work_email: data.workEmail,
         has_admin_credentials_ready: data.hasAdminCredentialsReady,
+        terms_accepted: data.termsAccepted,
         status: "PENDING",
         file_urls: fileUrls,
       })
@@ -135,6 +139,7 @@ export async function POST(request: Request) {
           crmSetup: data.crmSetup,
           primaryBottleneck: data.primaryBottleneck,
           currentTools: data.currentTools,
+          termsAccepted: data.termsAccepted,
           fileUrls,
           submittedAt: new Date().toISOString(),
         }),

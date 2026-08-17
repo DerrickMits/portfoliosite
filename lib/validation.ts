@@ -10,6 +10,9 @@ export const intakeSchema = z.object({
   fullName: z.string().min(1, "Full name is required"),
   workEmail: z.string().email("Valid work email required"),
   hasAdminCredentialsReady: z.boolean().default(false),
+  termsAccepted: z.boolean().refine((val) => val === true, {
+    message: "You must accept the terms and conditions to proceed",
+  }),
 });
 
 export type IntakeFormData = z.infer<typeof intakeSchema>;

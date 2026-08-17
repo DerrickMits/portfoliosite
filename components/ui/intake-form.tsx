@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, ChevronRight, ClipboardList, Zap, Building2, Upload, X } from "lucide-react";
+import Link from "next/link";
 import { type IntakeFormData } from "@/lib/validation";
 
 type Step = 1 | 2 | 3;
@@ -25,6 +26,7 @@ export function IntakeForm({ onComplete }: IntakeFormProps) {
     companyName: "", projectScope: "", crmSetup: "" as any,
     primaryBottleneck: "" as any, currentTools: [], manualTaskDescription: "",
     fullName: "", workEmail: "", hasAdminCredentialsReady: false,
+    termsAccepted: false,
   });
   const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -48,7 +50,7 @@ export function IntakeForm({ onComplete }: IntakeFormProps) {
   const ok = (): boolean => {
     if (step === 1) return !!data.companyName.trim() && !!data.projectScope.trim() && !!data.crmSetup;
     if (step === 2) return !!data.primaryBottleneck;
-    return !!data.fullName.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.workEmail);
+    return !!data.fullName.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.workEmail) && data.termsAccepted;
   };
 
   const submit = async () => {
@@ -233,6 +235,28 @@ export function IntakeForm({ onComplete }: IntakeFormProps) {
               </div>
               <span className="text-sm text-[#5A5852] dark:text-grey-300">Admin access / credentials are ready</span>
             </label>
+            <div className="flex items-start gap-3 pt-2">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="terms-accepted"
+                  checked={data.termsAccepted}
+                  onChange={() => update({ termsAccepted: !data.termsAccepted })}
+                  className="w-4 h-4 rounded border border-[#E5E2D9] dark:border-warm-700 focus:ring-2 focus:ring-[#7A8B7B] focus:ring-offset-0"
+                />
+              </div>
+              <span className="text-sm text-[#5A5852] dark:text-grey-300">
+                I agree to the{" "}
+                <Link
+                  href="https://portfoliosite-pearl-one.vercel.app/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-[#7A8B7B] hover:text-[#5A5852] dark:text-[#9CB09D] hover:underline"
+                >
+                  Terms and Conditions
+                </Link>
+              </span>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
