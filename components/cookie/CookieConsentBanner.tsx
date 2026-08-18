@@ -5,12 +5,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Shield } from "lucide-react";
 import { useCookieConsent } from "@/hooks/useCookieConsent";
 import { CookiePreferencesModal } from "@/components/cookie/CookiePreferencesModal";
+import { getConsentState, type CookieConsentState } from "@/lib/cookie-utils";
 
 const CONSENT_URL = "https://portfoliosite-pearl-one.vercel.app/terms";
 
 export function CookieConsentBanner() {
   const [isVisible, setIsVisible] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
+  const [existingConsent, setExistingConsent] = useState<CookieConsentState | null>(null);
   const { needsConsent, acceptAll, declineAll, updateConsent } = useCookieConsent();
 
   useEffect(() => {
@@ -19,6 +21,13 @@ export function CookieConsentBanner() {
       setIsVisible(true);
     }
   }, [needsConsent]);
+
+  // Get existing consent when preferences modal opens
+  useEffect(() => {
+    if (showPreferences) {
+      setExistingConsent(getConsentState());
+    }
+  }, [showPreferences]);
 
   // Honor DNT header for users who prefer not to track
   useEffect(() => {
@@ -49,6 +58,10 @@ export function CookieConsentBanner() {
 
   const handleOpenPreferences = () => {
     setShowPreferences(true);
+  };
+
+  const handleClosePreferences = () => {
+    setShowPreferences(false);
   };
 
   if (!isVisible) return null;
@@ -109,8 +122,9 @@ export function CookieConsentBanner() {
 
       <CookiePreferencesModal
         open={showPreferences}
-        onClose={() => setShowPreferences(false)}
+        onClose={handleClosePreferences}
         onSave={handleSavePreferences}
+        existingConsent={existingConsent}
       />
     </>
   );
