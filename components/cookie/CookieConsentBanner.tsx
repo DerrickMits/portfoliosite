@@ -115,16 +115,3 @@ export function CookieConsentBanner() {
     </>
   );
 }
-
-/**
- * Wrapper component that integrates the cookie banner into the app
- * Place this in your root layout or main app component
- */
-export function CookieConsentProvider({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      {children}
-      <CookieConsentBanner />
-    </>
-  );
-}
