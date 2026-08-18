@@ -8,19 +8,38 @@ import { CookiePreferencesModal } from "@/components/cookie/CookiePreferencesMod
 import { getConsentState, type CookieConsentState } from "@/lib/cookie-utils";
 
 const CONSENT_URL = "https://portfoliosite-pearl-one.vercel.app/terms";
+const CONSENT_KEY = 'cookie_consent';
 
 export function CookieConsentBanner() {
   const [isVisible, setIsVisible] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
   const [existingConsent, setExistingConsent] = useState<CookieConsentState | null>(null);
-  const { needsConsent, acceptAll, declineAll, updateConsent } = useCookieConsent();
 
+  // Check consent directly from localStorage on mount to avoid hydration issues
   useEffect(() => {
-    // Only show on client-side after hydration
-    if (typeof window !== "undefined" && needsConsent()) {
-      setIsVisible(true);
+    if (typeof window === 'undefined') return;
+    
+    // Check if user has already consented
+    const stored = localStorage.getItem(CONSENT_KEY);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        // Check expiration
+        if (Date.now() < parsed.expiresAt) {
+          // User has already consented - don't show banner
+          setIsVisible(false);
+          return;
+        }
+      } catch {
+        // Invalid stored data, show banner
+      }
     }
-  }, [needsConsent]);
+    
+    // User hasn't consented yet - show banner
+    setIsVisible(true);
+  }, []);
+
+  const { needsConsent, acceptAll, declineAll, updateConsent } = useCookieConsent();
 
   // Get existing consent when preferences modal opens
   useEffect(() => {
@@ -28,14 +47,6 @@ export function CookieConsentBanner() {
       setExistingConsent(getConsentState());
     }
   }, [showPreferences]);
-
-  // Honor DNT header for users who prefer not to track
-  useEffect(() => {
-    if (typeof navigator !== "undefined" && navigator.doNotTrack === "1") {
-      // Don't show banner to users with DNT enabled
-      setIsVisible(false);
-    }
-  }, []);
 
   const handleAcceptAll = () => {
     acceptAll();
@@ -77,7 +88,7 @@ export function CookieConsentBanner() {
             transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
             className="fixed bottom-0 left-0 right-0 z-[50] md:bottom-8 mx-auto max-w-4xl mb-6 px-4 sm:px-6"
           >
-            <div className="relative w-full bg-[#F9F8F5] dark:bg-warm-900/90 border border-[#E5E5E0] dark:border-warm-700 rounded-2xl p-4 sm:p-6 md:p-8 shadow-xl shadow-black/5 backdrop-blur-md">
+            <div className="relative w-full bg-[#F9F8F5] dark:bg-warm-900/90 border border-[#E5E5E0] dark:border-warm-700 rounded-2xl p-4 sm:p-6 md:p-8 shadow-xl shadow-black-5 backdrop-blur-md">
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex items-start gap-3">
                   <Shield className="w-5 h-5 text-[#7A8B7B] dark:text-[#9CB09D] flex-shrink-0 mt-0.5" />

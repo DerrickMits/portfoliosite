@@ -85,6 +85,16 @@ export function hasConsent(category: 'essential' | 'analytics' | 'functional' | 
 }
 
 /**
+ * Check if essential cookies have been accepted (for basic consent)
+ */
+export function hasBasicConsent(): boolean {
+  const state = getConsentState();
+  if (!state) return false;
+  
+  return state.essential === true;
+}
+
+/**
  * Clear consent state (for testing or reset)
  */
 export function clearConsentState(): void {
