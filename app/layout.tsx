@@ -4,6 +4,7 @@ import "./globals.css";
 import ThemeProvider from "@/components/ThemeProvider";
 import Navbar from "@/components/Navbar";
 import AIAssistantWidget from "@/components/AIAssistantWidget";
+import { CookieConsentProvider } from "@/components/cookie/CookieConsentBanner";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -56,6 +57,7 @@ export default function RootLayout({
           <Navbar />
           <main className="flex flex-col">{children}</main>
           <AIAssistantWidget />
+          <CookieConsentProvider />
         </ThemeProvider>
       </body>
     </html>
