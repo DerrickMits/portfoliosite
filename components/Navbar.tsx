@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
-import { Menu, X, ChevronDown, ArrowUpRight } from "lucide-react";
+import { Menu, X, ChevronDown, ArrowUpRight, ArrowLeft } from "lucide-react";
 import ToggleTheme from "@/components/ui/toggle-theme";
 
 type NavLink = {
@@ -124,9 +124,12 @@ export default function Navbar() {
           {isConsulting ? (
             <Link
               href="/"
-              className="font-display text-xl font-bold text-warm-900 dark:text-cream hover:text-warm-700 dark:hover:text-warm-300 transition-colors inline-flex items-center gap-2"
+              className="font-display text-xl font-bold text-warm-900 dark:text-cream hover:text-warm-700 dark:hover:text-warm-300 transition-colors inline-flex items-center gap-2 group"
             >
-              <span aria-hidden="true">←</span> Derrick Odiwuor
+              <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-warm-100 dark:bg-warm-800 group-hover:bg-warm-200 dark:group-hover:bg-warm-700 transition-colors">
+                <ArrowLeft className="w-4 h-4 text-warm-700 dark:text-warm-300" />
+              </span>
+              Derrick Odiwuor
             </Link>
           ) : (
             <Link
