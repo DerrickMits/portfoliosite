@@ -70,11 +70,7 @@ export default function Navbar() {
   const contentRef = useRef<HTMLDivElement>(null);
 
   const handleBack = () => {
-    if (window.history.length > 2) {
-      router.back();
-    } else {
-      router.push("/");
-    }
+    router.push("/");
   };
 
   useEffect(() => {
