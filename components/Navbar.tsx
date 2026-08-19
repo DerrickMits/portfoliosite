@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
+import Link from "next/link";
 import { Menu, X, ChevronDown, ArrowUpRight, ArrowLeft } from "lucide-react";
 import ToggleTheme from "@/components/ui/toggle-theme";
 
@@ -61,7 +61,6 @@ const contentItems: ContentItem[] = [
 
 export default function Navbar() {
   const pathname = usePathname();
-  const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -69,8 +68,8 @@ export default function Navbar() {
   const [contentOpen, setContentOpen] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const handleBack = () => {
-    router.push("/");
+  const goHome = () => {
+    window.location.href = "/";
   };
 
   useEffect(() => {
@@ -125,11 +124,12 @@ export default function Navbar() {
         }`}
       >
         <nav className="max-w-6xl mx-auto px-6 md:px-8 h-16 flex items-center justify-between">
-          {/* Brand — links back to portfolio home on /; shows name with ← arrow on /architect */}
+          {/* Brand — back arrow on /architect navigates to home */}
           {isConsulting ? (
             <button
-              onClick={handleBack}
+              onClick={goHome}
               className="font-display text-xl font-bold text-warm-900 dark:text-cream hover:text-warm-700 dark:hover:text-warm-300 transition-colors inline-flex items-center gap-2 group"
+              aria-label="Back to portfolio"
             >
               <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-warm-100 dark:bg-warm-800 group-hover:bg-warm-200 dark:group-hover:bg-warm-700 transition-colors">
                 <ArrowLeft className="w-4 h-4 text-warm-700 dark:text-warm-300" />
@@ -336,13 +336,13 @@ export default function Navbar() {
               {/* /architect — minimal mobile menu: back link + AI + theme */}
               {isConsulting && (
                 <div className="flex flex-col gap-3">
-                  <Link
-                    href="/"
-                    onClick={closeMobile}
-                    className="px-4 py-3 rounded-xl text-base font-medium text-warm-700 dark:text-warm-300 hover:bg-warm-100 dark:hover:bg-warm-800 transition-colors"
+                  <button
+                    onClick={goHome}
+                    className="px-4 py-3 rounded-xl text-base font-medium text-warm-700 dark:text-warm-300 hover:bg-warm-100 dark:hover:bg-warm-800 transition-colors inline-flex items-center gap-2"
                   >
-                    ← Back to Portfolio
-                  </Link>
+                    <ArrowLeft className="w-4 h-4" />
+                    Back to Portfolio
+                  </button>
                   <a
                     href={AI_ASSISTANT_URL}
                     target="_blank"
