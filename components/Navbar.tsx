@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import { Menu, X, ChevronDown, ArrowUpRight, ArrowLeft } from "lucide-react";
@@ -61,12 +61,21 @@ const contentItems: ContentItem[] = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [contentOpen, setContentOpen] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  const handleBack = () => {
+    if (window.history.length > 2) {
+      router.back();
+    } else {
+      router.push("/");
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -122,15 +131,15 @@ export default function Navbar() {
         <nav className="max-w-6xl mx-auto px-6 md:px-8 h-16 flex items-center justify-between">
           {/* Brand — links back to portfolio home on /; shows name with ← arrow on /architect */}
           {isConsulting ? (
-            <Link
-              href="/"
+            <button
+              onClick={handleBack}
               className="font-display text-xl font-bold text-warm-900 dark:text-cream hover:text-warm-700 dark:hover:text-warm-300 transition-colors inline-flex items-center gap-2 group"
             >
               <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-warm-100 dark:bg-warm-800 group-hover:bg-warm-200 dark:group-hover:bg-warm-700 transition-colors">
                 <ArrowLeft className="w-4 h-4 text-warm-700 dark:text-warm-300" />
               </span>
               Derrick Odiwuor
-            </Link>
+            </button>
           ) : (
             <Link
               href="/"
